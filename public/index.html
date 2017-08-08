@@ -1,15 +1,14 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="theme-color" content="#000000">
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <!--
       manifest.json provides metadata used when your web app is added to the
       homescreen on Android. See https://developers.google.com/web/fundamentals/engage-and-retain/web-app-manifest/
     -->
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json">
-    <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico">
     <!--
       Notice the use of %PUBLIC_URL% in the tags above.
       It will be replaced with the URL of the `public` folder during the build.
@@ -19,22 +18,153 @@
       work correctly both with client-side routing and a non-root public URL.
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
-    <title>React App</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css"/>
+    <link rel="stylesheet" href="https://www.misurainternet.it/static/bundle/styles-bundle.css" type="text/css"/>
+    <link rel="stylesheet" href="https://www.misurainternet.it/static/hijack/hijack-styles.css" type="text/css"/>
+    <link rel="stylesheet" href="https://www.misurainternet.it/static/css/style.css" type="text/css"/>
+    <link rel="icon" href="https://www.misurainternet.it/static/favicon.ico">
+    <title>MisuraInternet UI</title>
   </head>
   <body>
-    <noscript>
-      You need to enable JavaScript to run this app.
-    </noscript>
-    <div id="root"></div>
-    <!--
-      This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
+    <div class="header hidden-md-down">
+      <div class="container">
+        <div class="col-sm-6 hidden-md-down"><img src="https://www.misurainternet.it/static/img/logo_agcom_color.png"></div>
+        <div class="col-sm-6 text-sm-right"><img src="https://www.misurainternet.it/static/img/logo_fub.png"> &nbsp; <img
+          src="https://www.misurainternet.it/static/img/logo_iscom.png"></div>
+        </div>
+      </div>
 
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
+      <div class="container">
 
-      To begin the development, run `npm start` or `yarn start`.
-      To create a production bundle, use `npm run build` or `yarn build`.
-    -->
+        <nav class="navbar navbar-full bg-faded">
+          <button class="navbar-toggler hidden-lg-up" type="button" data-toggle="collapse"
+          data-target="#navbar-header" aria-controls="navbar-header">
+          &#9776;&nbsp;Misurainternet
+        </button>
+
+        <div class="collapse navbar-toggleable-md" id="navbar-header">
+          <ul class="nav navbar-nav float-lg-right">
+            <li class="nav-item ">
+              <a class="nav-link" href="/"><i class="fa fa-home"></i> HOME</a>
+            </li>
+            <li class="nav-item dropdown ">
+              <a class="nav-link dropdown-toggle" id="dropdown-about" data-toggle="dropdown" aria-haspopup="true"
+              aria-expanded="false" href="#">IL PROGETTO</a>
+              <div class="dropdown-menu" aria-labelledby="dropdown-about">
+                <a class="dropdown-item" href="/normativa/">Normativa di riferimento</a>
+                <a class="dropdown-item" href="/specifiche_indicatori/">Specifiche indicatori</a>
+                <a class="dropdown-item" href="/approfondimenti_nemesys/">Approfondimenti Nemesys</a>
+                <a class="dropdown-item" href="/certificato/">Il certificato</a>
+                <a class="dropdown-item" href="/approfondimenti_speedtest/">Approfondimenti
+                  Speedtest</a>
+                  <a class="dropdown-item" href="/definizioni/">Definizioni tecniche</a>
+                  <a class="dropdown-item" href="/statistiche/">Statistiche generali</a>
+                  <a class="dropdown-item" href="/chi_siamo/">Chi siamo</a>
+                </div>
+              </li>
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" id="dropdown-comparazione" data-toggle="dropdown"
+                aria-haspopup="true" aria-expanded="false" href="#">DOWNLOAD</a>
+                <div class="dropdown-menu" aria-labelledby="dropdown-comparazione">
+                  <a class="dropdown-item" href="/download/nemesys/">Nemesys</a>
+                  <a class="dropdown-item" href="/download/speedtest/">Speedtest</a>
+                </div>
+              </li>
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" id="dropdown-comparazione" data-toggle="dropdown"
+                aria-haspopup="true" aria-expanded="false" href="#">COMPARAZIONE OPERATORI</a>
+                <div class="dropdown-menu" aria-labelledby="dropdown-comparazione">
+                  <a class="dropdown-item" href="/valori_statistici/">Valori statistici comparativi</a>
+                  <a class="dropdown-item" href="/confronto_banda_minima/">Confronto banda minima
+                    garantita</a>
+                    <a class="dropdown-item" href="/trasparenza/">Trasparenza offerta Internet</a>
+                    <a class="dropdown-item" href="/architettura/">Architettura del sistema</a>
+                    <a class="dropdown-item" href="/punti_di_misura/">Punti di misura</a>
+                  </div>
+                </li>
+                <li class="nav-item ">
+                  <a class="nav-link" href="/supporto/">SUPPORTO</a>
+                </li>
+
+                <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" id="dropdown-user" data-toggle="dropdown"
+                  aria-haspopup="true" aria-expanded="false" href="#"><i class="fa fa-user"></i>
+                </a>
+                <div class="dropdown-menu" aria-labelledby="dropdown-user">
+
+                  <a class="dropdown-item" href="/login/">Login</a>
+                  <a class="dropdown-item" href="/registrazione/">Registrazione</a>
+
+                  <a class="dropdown-item" href="/nemesys_gui/">Interfaccia Nemesys</a>
+
+                </div>
+              </li>
+            </ul>
+          </div>
+        </nav>
+      </div>
+      <!-- /navbar -->
+      <div class="main container">
+        <!-- Begin page content -->
+        <div class="row">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item">Il progetto</li>
+            <li class="breadcrumb-item active">MisuraInternet UI</li>
+          </ol>
+        </div>
+
+        <div class="row">
+          <div class="col-xs-12" id="root"></div>
+          <!--
+          This HTML file is a template.
+          If you open it directly in the browser, you will see an empty page.
+
+          You can add webfonts, meta tags, or analytics to this file.
+          The build step will place the bundled scripts into the <body> tag.
+
+          To begin the development, run `npm start` or `yarn start`.
+          To create a production bundle, use `npm run build` or `yarn build`.
+        -->
+      </div>
+    </div>
+    <!-- /.container -->
+
+    <footer class="footer footer-top">
+      <div class="container">
+        <br>
+        <div class="row">
+          <div class="col-lg-5 text-xs-center">
+            <a href="http://www.agcom.it" class="top-logo-link">
+              <img src="https://www.misurainternet.it/static/img/logo_agcom.png" width="315px" height="70px"
+              style="margin-top: -8px; margin-bottom: 1em;"
+              alt="AGCOM logo">
+            </a>
+          </div>
+          <div class="pull-lg-right col-lg-7">
+
+
+
+            <div class="col-sm-6 text-xs-center" style="border-right: solid 2px #12354C;">
+              <a href="/accessibilita/">ACCESSIBILITÀ</a>
+            </div>
+            <div class="col-sm-6 text-xs-center">
+              <a href="/privacy/">PRIVACY</a>
+            </div>
+          </div>
+        </div>
+        <br>
+      </div>
+    </footer>
+    <footer class="footer footer-middle">
+      <div class="container text-xs-center">
+        <span>&copy; 2009-2017 Tutti i diritti riservati - Fondazione Ugo Bordoni - Codice fiscale 97201200587</span>
+      </div>
+    </footer>
+    <footer class="footer footer-bottom">
+      <div class="container">
+        <br>
+      </div>
+    </footer>
   </body>
-</html>
+  </html>
