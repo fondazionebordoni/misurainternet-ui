@@ -2,7 +2,7 @@ import React from 'react';
 
 const Pulsante=(props)=>{
   return (
-    <div className="text-xs-center mt-1 mb-2">
+    <div className="text-xs-center mb-2">
       <button
         className="btn btn-outline-primary btn-lg"
         onClick={props.onClick}>
@@ -14,7 +14,7 @@ const Pulsante=(props)=>{
 
 /*
 Pulsante.propTypes = {
-  onClick: React.propTypes.func
+  onClick: React.PropTypes.func
 };
 */
 export default Pulsante;
