@@ -7,17 +7,15 @@ class MisuraCorrente extends React.Component{
   render(){
     return (
       <div >
-        <div className="text-xs-center" >
-          <Gauge
-            value={20}
-            color={"#295877"}
-            width={360}
-            height={220}
-            label=""
-            valueLabelStyle={{fontWeight: "lighter"}}
-            minMaxLabelStyle={{fontWeight: "lighter"}}
-          />
-        </div>
+        <Gauge
+          value={20}
+          color={"#295877"}
+          width={360}
+          height={220}
+          label=""
+          valueLabelStyle={{fontWeight: "lighter"}}
+          minMaxLabelStyle={{fontWeight: "lighter"}}
+        />
         <Pulsante />
         <hr />
         <ContenitoreValoriMisuraCorrente

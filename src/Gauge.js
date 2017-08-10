@@ -68,6 +68,7 @@ export default class Gauge extends Component {
 				: {...this.props.valueLabelStyle, fontSize: (this.props.width / 10) });
 		var { Cx, Ro, Ri, Xo, Cy, Xi } = this._getPathValues(this.props.max);
 		return (
+			<div className="text-xs-center">
 				<svg height="100%" version="1.1" width="100%" xmlns="http://www.w3.org/2000/svg" style={{width: this.props.width, height: this.props.height, overflow: 'hidden', position: 'relative', left: 0, top: 0}}>
 					<defs>
 						<filter id="g3-inner-shadow">
@@ -94,6 +95,7 @@ export default class Gauge extends Component {
 						{this.props.max}
 					</text>
 				</svg>
+			</div>
 		);
 	}
 }
