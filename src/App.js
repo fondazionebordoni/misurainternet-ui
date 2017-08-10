@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import Intestazione from './Intestazione';
+import MisuraCorrente from './MisuraCorrente';
 
 import MisuraCorrente from './MisuraCorrente';
 
