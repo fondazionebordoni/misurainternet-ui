@@ -10,11 +10,12 @@ class MisuraCorrente extends React.Component{
         <Gauge
           value={20}
           color={"#295877"}
+          backgroundColor={"#ECEFF1"}
           width={360}
           height={220}
           label=""
-          valueLabelStyle={{fontWeight: "lighter"}}
-          minMaxLabelStyle={{fontWeight: "lighter"}}
+          valueLabelStyle={{fontWeight: "lighter", fill: "#295877"}}
+          minMaxLabelStyle={{fill: "#295877"}}
         />
         <Pulsante />
         <hr />
@@ -23,6 +24,7 @@ class MisuraCorrente extends React.Component{
           downloadValue={0}
           uploadValue={0}
         />
+        <hr />
       </div>
     )
 

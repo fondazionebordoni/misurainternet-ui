@@ -3,7 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "chartkick": "^2.2.4",
+    "highcharts": "^5.0.14",
     "react": "^15.6.1",
+    "react-chartkick": "^0.1.3",
     "react-dom": "^15.6.1",
     "react-scripts": "1.0.10"
   },
