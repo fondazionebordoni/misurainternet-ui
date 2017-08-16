@@ -6,18 +6,18 @@ const Pulsante=(props)=>{
       <button
         className="btn btn-outline-primary btn-lg"
         style={{
-          borderRadius:4
+          borderRadius: 3
         }}
         onClick={props.onClick}>
-          START
+        <span className="pr-1 pl-1">START</span>
       </button>
     </div>
   )
 }
 
-/*
+
 Pulsante.propTypes = {
   onClick: React.PropTypes.func
 };
-*/
+
 export default Pulsante;

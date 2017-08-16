@@ -6,7 +6,12 @@ class ValoreMisuraCorrente extends React.Component{
       <div className="col-xs-4">
         <p className="text-xs-center">
           <i
-            className={"fa " + this.props.icon + " mr-1"}
+            className={"fa " + this.props.icon}
+            style={
+              {
+                marginRight: 7
+              }
+            }
             aria-hidden="true">
           </i>
           {this.props.header}

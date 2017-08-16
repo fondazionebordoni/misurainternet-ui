@@ -11,21 +11,21 @@ class Riepilogo extends React.Component{
         <TabellaNotifiche  />
         <Grafico
           titolo="Grafico latenza"
-          xtitle="misurazioni" //da cambiare
+          xtitle="misurazioni"
           ytitle="ms"
           label="Ping"
           data={[ [1.0, 100.0], [2.0, 60.0]]}
         />
         <Grafico
           titolo="Grafico download"
-          xtitle="misurazioni" //da cambiare
+          xtitle="misurazioni"
           ytitle="Mb/s"
           label="Banda"
           data={[ [1.0, 40.0], [2.0, 30.0]]}
         />
         <Grafico
           titolo="Grafico upload"
-          xtitle="misurazioni" //da cambiare
+          xtitle="misurazioni" 
           ytitle="Mb/s"
           label="Banda"
           data={[ [1.0, 30.0], [2.0, 40.0]]}
