@@ -8,24 +8,27 @@ class Riepilogo extends React.Component{
     return (
       <div className="mt-3 mb-2">
         <InfoRiepilogo misCorrenti={2} misTotali={96}/>
-        <TabellaNotifiche />
+        <TabellaNotifiche  />
         <Grafico
           titolo="Grafico latenza"
-          xtitle="volte" //da cambiare
+          xtitle="misurazioni" //da cambiare
           ytitle="ms"
           label="Ping"
+          data={[ [1.0, 100.0], [2.0, 60.0]]}
         />
         <Grafico
           titolo="Grafico download"
-          xtitle="volte" //da cambiare
+          xtitle="misurazioni" //da cambiare
           ytitle="Mb/s"
           label="Banda"
+          data={[ [1.0, 40.0], [2.0, 30.0]]}
         />
         <Grafico
           titolo="Grafico upload"
-          xtitle="volte" //da cambiare
+          xtitle="misurazioni" //da cambiare
           ytitle="Mb/s"
           label="Banda"
+          data={[ [1.0, 30.0], [2.0, 40.0]]}
         />
       </div>
     )

@@ -1,5 +1,5 @@
 import React from 'react';
-import { LineChart } from 'react-chartkick';
+import { LineChart, AreaChart } from 'react-chartkick';
 window.Highcharts = require('highcharts');
 
 class Grafico extends React.Component{
@@ -7,7 +7,7 @@ class Grafico extends React.Component{
     return (
       <div>
         <h5 className="mb-2">{this.props.titolo}</h5>
-        <LineChart xtitle={this.props.xtitle} ytitle={this.props.ytitle} label={this.props.label} data={[ [1.0, 11.0], [2.0, 6.0]]} />      </div>
+        <LineChart xtitle={this.props.xtitle} ytitle={this.props.ytitle} label={this.props.label} data={this.props.data} />      </div>
       )
 
     }
