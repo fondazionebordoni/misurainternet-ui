@@ -8,7 +8,7 @@
       return (
         <div >
           <Gauge
-            value={20}
+            value={this.props.value}
             color={"#0275d8"}
             backgroundColor={"#ECEFF1"}
             width={360}
@@ -19,9 +19,9 @@
           />
           <Pulsante />
           <ContenitoreValoriMisuraCorrente
-            pingValue={0}
-            downloadValue={0}
-            uploadValue={0}
+            pingValue={this.props.pingValue}
+            downloadValue={this.props.downloadValue}
+            uploadValue={this.props.uploadValue}
           />
         </div>
       )
