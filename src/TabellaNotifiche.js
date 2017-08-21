@@ -9,7 +9,7 @@ class TabellaNotifiche extends React.Component {
     rows.push(<li className="list-group-item"><Notifica text={"Notifica 3"}  /></li>);
 
     return(
-      <div className="mt-1 mb-2">
+      <div className="mt-2 mb-2">
       <h5>Notifiche</h5>
       <div>Qui verranno segnalate eventuali notifiche ed errori nell' esecuzione di Nemesys</div>
       <ul className="list-group mt-1">

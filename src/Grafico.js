@@ -5,13 +5,15 @@ window.Highcharts = require('highcharts');
 class Grafico extends React.Component{
   render(){
     return (
-      <div>
-        <h5 className="mb-2">{this.props.titolo}</h5>
+      <div className="mb-3">
         <LineChart
           library={
             {
               xAxis:{
                 tickmarkPlacement: 'on'
+              },
+              title:{
+                text: this.props.titolo
               }
             }
           }

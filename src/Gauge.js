@@ -12,6 +12,7 @@ export default class Gauge extends Component {
 		backgroundColor: "#edebeb",
 		topLabelStyle: {textAnchor: "middle", fill:"#999999", stroke: "none", fontStyle: "normal",fontVariant: "normal", fontWeight: 'bold', fontStretch: 'normal', lineHeight: 'normal', fillOpacity: 1},
 		valueLabelStyle: {textAnchor: "middle", fill:"#010101", stroke: "none", fontStyle: "normal", fontVariant: "normal", fontWeight: 'bold', fontStretch: 'normal', lineHeight: 'normal', fillOpacity: 1},
+		unitLabelStyle: {textAnchor: "middle", fill:"#818a91", stroke: "none", fontStyle: "normal",fontVariant: "normal", fontWeight: 'lighter', fontStretch: 'normal', fontSize: 25, lineHeight: 'normal', fillOpacity: 1},
 		minMaxLabelStyle: {textAnchor: "middle", fill:"#999999", stroke: "none", fontStyle: "normal",fontVariant: "normal", fontWeight: 'normal', fontStretch: 'normal', fontSize: 20, lineHeight: 'normal', fillOpacity: 1}
 	};
 
@@ -65,7 +66,7 @@ export default class Gauge extends Component {
 				: {...this.props.topLabelStyle, fontSize: (this.props.width / 10) });
 		var valueLabelStyle = (this.props.valueLabelStyle.fontSize
 				? this.props.valueLabelStyle
-				: {...this.props.valueLabelStyle, fontSize: (this.props.width / 10) });
+				: {...this.props.valueLabelStyle, fontSize: (this.props.width / 6) });
 		var { Cx, Ro, Ri, Xo, Cy, Xi } = this._getPathValues(this.props.max);
 		return (
 			<div className="text-xs-center">
@@ -86,10 +87,13 @@ export default class Gauge extends Component {
 						{ this.props.label }
 					</text>
 					<text x={this.props.width / 2} y={this.props.height / 5 * 4} textAnchor="middle" style={valueLabelStyle}>
-						{ this.props.value } Mb/s
+						{ this.props.value }
 					</text>
 					<text x={((Cx - Ro) + (Cx - Ri)) / 2} y={Cy + 25} textAnchor="middle" style={this.props.minMaxLabelStyle}>
 						{this.props.min}
+					</text>
+					<text x={this.props.width / 2} y={Cy + 25} textAnchor="middle" style={this.props.unitLabelStyle}>
+						Mb/s
 					</text>
 					<text x={(Xo + Xi)/2} y={Cy + 25} textAnchor="middle" style={this.props.minMaxLabelStyle}>
 						{this.props.max}

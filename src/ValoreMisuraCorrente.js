@@ -3,7 +3,7 @@ import React from 'react';
 class ValoreMisuraCorrente extends React.Component{
   render(){
     return (
-      <div className="col-xs-4">
+      <div className="col-sm-4">
         <p className="text-xs-center">
           <i
             className={"fa " + this.props.icon}
