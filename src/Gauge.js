@@ -93,7 +93,7 @@ export default class Gauge extends Component {
 						{this.props.min}
 					</text>
 					<text x={this.props.width / 2} y={Cy + 25} textAnchor="middle" style={this.props.unitLabelStyle}>
-						Mb/s
+						{this.props.unitMeasure}
 					</text>
 					<text x={(Xo + Xi)/2} y={Cy + 25} textAnchor="middle" style={this.props.minMaxLabelStyle}>
 						{this.props.max}

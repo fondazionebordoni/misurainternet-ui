@@ -1,15 +1,10 @@
 import React from 'react';
 
-const Intestazione = () =>{
+const Intestazione = (props) =>{
   return (
     <div>
-      <h2>MisuraInternet UI</h2>
-        <p>Interfaccia web per il monitoraggio della
-          qualità degli accessi ad Internet da postazione fissa
-          realizzato da AGCOM in collaborazione con la Fondazione
-          Ugo Bordoni ed il supporto dell’Istituto Superiore
-          delle Comunicazioni.
-        </p>
+      <h2>{props.hdr}</h2>
+        {props.par}
     </div>
   )
 }

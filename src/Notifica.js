@@ -3,7 +3,7 @@ import React from 'react';
 class Notifica extends React.Component {
   render() {
     return(
-      <div>{this.props.text}</div>
+      <div className="text-danger">{this.props.text}</div>
     )
   }
 }
