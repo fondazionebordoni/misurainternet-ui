@@ -98,7 +98,7 @@ class App extends Component {
         break;
       case "profilation": //
         this.profilation(msg.content.done);
-        break;
+        break; 
       case "result": //*
         this.displayResult(msg.content.test_type, msg.content.result, msg.content.error);
         break;
