@@ -2,7 +2,6 @@ import React from 'react';
 import Pulsante from './Pulsante';
 import Gauge from './Gauge';
 import ContenitoreValoriMisuraCorrente from './ContenitoreValoriMisuraCorrente';
-import ContenitoreIconeDiStato from './ContenitoreIconeDiStato';
 
 class MisuraCorrente extends React.Component{
   render(){
@@ -24,17 +23,6 @@ class MisuraCorrente extends React.Component{
           pingValue={this.props.pingValue}
           downloadValue={this.props.downloadValue}
           uploadValue={this.props.uploadValue}
-        />
-        <ContenitoreIconeDiStato
-          statoEthernet={this.props.statoEthernet}
-          statoCpu={this.props.statoCpu}
-          statoRam={this.props.statoRam}
-          statoWifi={this.props.statoWifi}
-
-          cardEthernet={this.props.cardEthernet}
-          cardCpu={this.props.cardCpu}
-          cardRam={this.props.cardRam}
-          cardWifi={this.props.cardWifi} 
         />
       </div>
     );

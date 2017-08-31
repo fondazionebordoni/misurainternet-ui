@@ -3,6 +3,7 @@ import Intestazione from './Intestazione';
 import MisuraCorrente from './MisuraCorrente';
 import Riepilogo from './Riepilogo';
 import Notifica from './Notifica'
+import ContenitoreIconeDiStato from './ContenitoreIconeDiStato';
 
 var res = [];
 var listelements = [];
@@ -14,11 +15,12 @@ class App extends Component {
     this.state={
         mostra: true,
         valore: 0,
-        misure: [],
+        misCorrenti: 0,
+        //misure: [],
         hdr: "MisuraInternet UI",
         par: <p>Interfaccia web per il monitoraggio della qualità degli accessi ad Internet da postazione fissa
          realizzato da AGCOM in collaborazione con la Fondazione  Ugo Bordoni ed il supporto dell’Istituto Superiore delle Comunicazioni.</p>,
-        //"Interfaccia web per il monitoraggio della qualità degli accessi ad Internet da postazione fissa  realizzato da AGCOM in collaborazione con la Fondazione  Ugo Bordoni ed il supporto dell’Istituto Superiore delle Comunicazioni.",
+
         unitMeasure: "",
         gaugeColor: "#0275d8",
         pingValue: 0,
@@ -44,56 +46,64 @@ class App extends Component {
     this.displayMeasureView=this.displayMeasureView.bind(this);
   }
 
-  componentDidMount() { // il this di componentDidMount è App
+  componentDidMount() {
     var ws=new WebSocket('ws://localhost:8080');
 
     ws.onopen=function(){
       var req = {
-            request: "currentstatus" //oggetto javascript
+            request: "currentstatus"
         };
-        this.send(JSON.stringify(req));
+        this.send(JSON.stringify(req));        
     }
     ws.onmessage=function(message){
       var msg = JSON.parse(message.data);
-      this.readMessage(msg); //il this ci va perchè readMessage è un metodo della classe!
-      //console.log(this);
-    }.bind(this)//lo lega al this di componentDidMount, ovvero App
+      this.readMessage(msg);
+
+    }.bind(this)
+
+  /*  ws.onclose = function (event) {
+        /**
+         se la chiusura è stata causata da qualche errore
+
+        if (event.code != 1000) {
+            this.displayError(event.code);
+        }
+    }; */
   }
 
-   readMessage(msg) { //msg è quello che ricevo dal server
+   readMessage(msg) {
         client_id = msg.serial;
-        //console.log("CLIENT ID" + client_id);
 
         switch (msg.type) {
             case "sys_resource": //
-                this.sysResource(msg.message.resource, msg.message.state, msg.message.info);
+                this.sysResource(msg.content.resource, msg.content.state, msg.content.info);
                 break;
             case "wait": //    /serial=id_client&
-                //this.displayWaitView(msg.message.message, msg.message.seconds);
+                this.displayWaitView(msg.content.message, msg.content.seconds);
                 break;
             case "end":
                 this.displayEndView();
                 break;
             case "notification":
-                this.displayNotification(msg.message.error_code, msg.message.message);
+                this.displayNotification(msg.content.error_code, msg.content.message);
                 break;
             case "error":
-                this.displayError(msg.message);
+                this.displayError(msg.content);
                 break;
             case "measure": //*
-                this.displayMeasureView(msg.message.test_type, msg.message.bw);
+                this.displayMeasureView(msg.content.test_type, msg.content.bw);
                 break;
             case "tachometer": //
-              this.updateTachometer(msg.message.value);
+              this.updateTachometer(msg.content.value);
                 break;
             case "profilation": //
-              this.profilation(msg.message.done);
+              this.profilation(msg.content.done);
                 break;
             case "result": //*
-                this.displayResult(msg.message.test_type, msg.message.result, msg.message.error);
+                this.displayResult(msg.content.test_type, msg.content.result, msg.content.error);
                 break;
             case "test": //*
-              this.displayTestN(msg.message.n_test, msg.message.n_tot, msg.message.retry);
+              this.displayTestN(msg.content.n_test, msg.content.n_tot, msg.content.retry);
                 break;
             default:
                 console.log("Wrong message");
@@ -111,19 +121,11 @@ class App extends Component {
           m = '0' + m;
       }
 
-      var n = Math.ceil(Math.random() * 100000); //Round a number upward to its nearest integer. Perché ho bisogno di un numero random???
+      var n = Math.ceil(Math.random() * 100000); //Round a number upward to its nearest integer.
       var collapse = 'collapse' + n;
       var heading = 'heading' + n;
 
       listelements.push(<li  className="list-group-item"> <Notifica text={h + ":" + m + '-' + message +  '(codice errore: ' + error_code +')'}/> </li>);
-
-      /*$('#accordion').prepend('<div class="panel panel-default"><div class="panel-heading" role="tab" id="' + heading + '"><h5 class="panel-title">' +  //Insert content at the beginning of all <#accordion> elements:
-          '<a class="text-danger" data-toggle="collapse" data-parent="#accordion" href="#' + collapse +
-          '" aria-expanded="false" aria-controls="' + collapse + '">' + h + ':' + m + ' - ' + message + '</a></h5></div>' +
-          '<div id="' + collapse + '" class="panel-collapse collapse" role="tabpanel" aria-labelledby="' + heading + '">' +
-          '<a href="#' + error_code + '">Codice errore: ' + error_code + '</a></div></div>');
-
-      var listelements = $('#accordion').children();      */
 
       if (listelements.length > 10) {
           listelements.splice(0,1); //limito a 10 la lista di notifiche mostrate nella pagina
@@ -135,7 +137,6 @@ class App extends Component {
       this.setState({valore: 0});
       if (error) {
           this.setState({par: "Test di " + test_type + " fallito: " + error + ". Nuovo tentativo fra pochi secondi..."});
-          //$('#par').text("Test di " + test_type + " fallito: " + error + ". Nuovo tentativo fra pochi secondi...");
       }
       else {
           switch (test_type) {
@@ -173,7 +174,7 @@ class App extends Component {
     }
   }
 
-    profilation(done) { //a cosa serve?
+    profilation(done) {
       this.setState({mostra: false});
       if (done==="False") {
             this.setState({par: "Profilazione in corso..."});
@@ -238,123 +239,25 @@ class App extends Component {
             }
           }
           default: {
-              //$(resource).removeClass("card-danger");
-              //$(resource).removeClass("card-primary");
           }
       }
   }
 
   displayWaitView(message, seconds) {
-    this.setState({hdr: "Nemesys è in attesa di effettuare una nuova misura."})
 
-    /*
-     1) post al backend;
-     2) risultato: {up/down/ping:[{time:Date, "value":number}]}
-     3) formato del grafico (per ogni grafico):
-     [{
-     hour:"HH:00 - "(HH+1%24):00",
-     val0: prima misura della fascia
-     ...
-     valN-1: Nesima
-     }]
-     */
-    var msg = message;
+    this.setState({par: message})
 
     if (client_id && client_id.length > 0) {
-      this.setState({dataPing: "/get_measures_detail/?serial=id_client&type=ping"});
-      this.setState({dataDownload: "/get_measures_detail/?serial=id_client&type=download"});
-      this.setState({dataUpload: "/get_measures_detail/?serial=id_client&type=upload"});
-      this.setState({dataUpload: "/get_measures_detail/?serial=id_client&type=numMeasures"});
 
+      this.setState({dataPing: "/get_client_detail/?serial=id_client&type=ping"});
+      this.setState({dataDownload: "/get_client_detail/?serial=id_client&type=download"});
+      this.setState({dataUpload: "/get_client_detail/?serial=id_client&type=upload"});
+      //this.setState({: "/get_measures_detail/?serial=id_client&type=numMeasures"});
+      //this.setState({: "/get_measures_detail/?serial=id_client&type=licenseInfo"});
 
-        /*var measures_ajax_settings = $.extend({
-                "data": '{ "serial":"' + client_id + '", "request":"measures_detail"}',
-                "datatype": "json"
-            },
-            ajax_post_settings
-        );
+      //this.setState({par: ""}
 
-        $.ajax(measures_ajax_settings).done( // quando ajax ha finito
-            function (res, textStatus, jqXHR) { //Da dove prende i parametri???
-                if (textStatus == "success") {
-                    console.log(res)
-
-                    var response = res;
-                    // var response = JSON.parse(res)[0];
-
-                    var n_tot = response.ntot;
-
-                    $('#par').text("Sono state effettuate " + response.up.length + " misurazioni su " + n_tot + ". " + msg);
-
-                    var datapoints_up = list2datapoints(response.up, n_tot);
-                    var datapoints_down = list2datapoints(response.down, n_tot);
-                    var datapoints_ping = list2datapoints(response.ping, n_tot);
-
-                    var y_k = Object.keys(datapoints_up[0]).filter(
-                        function (element) {
-                            return element.startsWith("val");
-                        }
-                    );
-                    var lbs = []
-                    for (var i = 1; i <= y_k.length; i++) {
-                        lbs.push(i + "° test");
-                    }
-                    var settings = {
-                        xkey: 'hour',
-                        ykeys: y_k,
-                        labels: lbs,
-                        barGap: 1,
-                        barSizeRatio: 0.97,
-                        hideHover: true,
-                        behaveLikeLine: true,
-                        parseTime: false,
-                        resize: true
-                    }
-
-                    $("#up-container").empty();
-                    $("#up-container").append('<div id="up-bar"></div>');
-                    var settings_d = {
-                        element: 'up-bar',
-                        data: datapoints_up,
-                        yLabelFormat: function (y) {
-                            return (y <= 0 ? ('-') : ((y / 1000).toFixed(2) + ' Mbit/s'));
-                        },
-                        barColors: ['#4eb14e'],
-                    }
-                    $.extend(settings_d, settings);
-                    Morris.Bar(settings_d);
-
-                    $("#down-container").empty();
-                    $("#down-container").append('<div id="down-bar"></div>');
-                    var settings_u = {
-                        element: 'down-bar',
-                        data: datapoints_down,
-                        yLabelFormat: function (y) {
-                            return (y <= 0 ? ('-') : ((y / 1000).toFixed(2) + ' Mbit/s'));
-                        },
-                        barColors: ['#2b8bd4'],
-                    }
-                    $.extend(settings_u, settings);
-                    Morris.Bar(settings_u);
-
-                    $("#ping-container").empty();
-                    $("#ping-container").append('<div id="ping-bar"></div>');
-                    var settings_p = {
-                        element: 'ping-bar',
-                        data: datapoints_ping,
-                        yLabelFormat: function (y) {
-                            return (y <= 0 ? ('-') : (y.toFixed(2) + ' ms'));
-                        },
-                        barColors: ['#eb9114'],
-                    }
-                    $.extend(settings_p, settings);
-                    Morris.Bar(settings_p);
-                }
-            }
-        );
-    }
-}*/
-
+       //$('#par').text("Sono state effettuate " + response.up.length + " misurazioni su " + n_tot + ". " + msg);
     }
   }
 
@@ -420,14 +323,7 @@ class App extends Component {
     return (
       <div>
         <Intestazione hdr={this.state.hdr} par={this.state.par} />
-        <MisuraCorrente
-          value={this.state.valore}
-
-          unitMeasure={this.state.unitMeasure}
-          gaugeColor = {this.state.gaugeColor}
-          pingValue={this.state.pingValue}
-          downloadValue={this.state.downloadValue}
-          uploadValue={this.state.uploadValue}
+        <ContenitoreIconeDiStato
 
           statoEthernet={this.state.statoEthernet}
           statoCpu={this.state.statoCpu}
@@ -438,6 +334,15 @@ class App extends Component {
           cardCpu={this.state.cardCpu}
           cardRam={this.state.cardRam}
           cardWifi={this.state.cardWifi}
+          />
+        <MisuraCorrente
+          value={this.state.valore}
+
+          unitMeasure={this.state.unitMeasure}
+          gaugeColor = {this.state.gaugeColor}
+          pingValue={this.state.pingValue}
+          downloadValue={this.state.downloadValue}
+          uploadValue={this.state.uploadValue}
           />
         <Riepilogo
         misCorrenti={2}

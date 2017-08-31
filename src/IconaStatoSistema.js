@@ -3,7 +3,8 @@
   class IconaStatoSistema extends React.Component{
     render(){
       return (
-        <div className={"text-xs-center col-sm-3 card card-inverse " + this.props.card } >
+        <div className={"px-2 col-sm-3"}>
+        <div className={"pt-1 text-xs-center  card card-inverse " + this.props.card } >
           <h5
             style={{fontWeight: "lighter"}}>
             {"" + this.props.type }
@@ -15,6 +16,7 @@
           </h5>
         </div>
       </div>
+    </div>
       )
     }
   }

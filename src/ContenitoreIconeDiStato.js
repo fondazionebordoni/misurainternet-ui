@@ -5,8 +5,8 @@ import ValoreMisuraCorrente from './ValoreMisuraCorrente'
 class ContenitoreIconeDiStato extends React.Component{
   render(){
     return (
-      <div className="mt-2">
-        <div className="row text-xs-center">
+      <div className="mt-2 mb-2 ">
+        <div className="row">
           <IconaStatoSistema
             card={this.props.cardEthernet}
             stato={this.props.statoEthernet}
@@ -28,7 +28,7 @@ class ContenitoreIconeDiStato extends React.Component{
             type="WIFI"
           />
         </div>
-        <hr />
+        {/*<hr />*/}
       </div>
     )
   }
