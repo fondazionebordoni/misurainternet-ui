@@ -3,23 +3,19 @@ import Grafici from './Grafici';
 import InfoRiepilogo from './InfoRiepilogo';
 import TabellaNotifiche from './TabellaNotifiche';
 
-class Riepilogo extends React.Component{
-  render(){
+class Riepilogo extends React.Component {
+  render() {
     return (
       <div className="mt-3 mb-2">
         <InfoRiepilogo misCorrenti={this.props.misCorrenti} misTotali={this.props.misTotali}/>
-        <TabellaNotifiche  notifiche={this.props.notifiche}/>
-        <Grafici
-          dataPing={this.props.dataPing}
-          dataDownload={this.props.dataDownload}
-          dataUpload={this.props.dataUpload} />
+        <TabellaNotifiche notifiche={this.props.notifiche}/>
+        <Grafici dataPing={this.props.dataPing} dataDownload={this.props.dataDownload} dataUpload={this.props.dataUpload}/>
       </div>
     )
   }
 }
 
 export default Riepilogo;
-
 
 /*  titolo="Latenza"
   xtitle="Misurazioni"

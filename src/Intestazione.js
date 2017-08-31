@@ -1,10 +1,10 @@
 import React from 'react';
 
-const Intestazione = (props) =>{
+const Intestazione = (props) => {
   return (
     <div className={"mb-2"}>
       <h2>{props.hdr}</h2>
-        {props.par}
+      {props.par}
     </div>
   )
 }
