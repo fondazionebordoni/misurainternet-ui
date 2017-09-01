@@ -18,7 +18,7 @@ class App extends Component {
       mostra: true,
       valore: 0,
       misCorrenti: 0,
-      //misure: [],
+      misure: [],
       hdr: "MisuraInternet UI",
       par: <p>Interfaccia web per il monitoraggio della qualità degli accessi ad Internet da postazione fissa realizzato da AGCOM in collaborazione con la Fondazione Ugo Bordoni ed il supporto dell’Istituto Superiore delle Comunicazioni.</p>,
 
@@ -98,7 +98,7 @@ class App extends Component {
         break;
       case "profilation": //
         this.profilation(msg.content.done);
-        break; 
+        break;
       case "result": //*
         this.displayResult(msg.content.test_type, msg.content.result, msg.content.error);
         break;
@@ -180,11 +180,7 @@ class App extends Component {
   updateTachometer(value) {
     this.setState({valore: value.toFixed(2)});
     res.push(value);
-    this.setState({
-      misure: this.state.misure.concat([
-        [res.length, value]
-      ])
-    });
+    this.setState({misure: this.state.misure.concat([[res.length, value]])});
   }
 
   displayTestN(n_test, n_tot, retry) {
@@ -203,6 +199,7 @@ class App extends Component {
     this.setState({mostra: false});
     if (done === "False") {
       this.setState({par: "Profilazione in corso..."});
+      //faccio scomparire le card della profilazione a fine misurazione (da fare sul wait)  -> li mostro quando inizio la profilazione --- aggiungere animazione con jquery
     } else {
       this.setState({mostra: true});
     }
@@ -275,17 +272,29 @@ class App extends Component {
   }
 
   displayWaitView(serial, message, seconds) {
+    //MIST:
+//on error->
+//in modalità speed test, l' utente può tornare in modalità nemesys ricaricando la pagina
+//richiedere il seriale
+
 
     this.setState({par: message})
 
     if (serial && serial.length > 0) {
+      //se non ho il seriale, nascondo i componenti dei Grafici
+      //
 
       //manda solo la richiesta e i file json di risposta  atom-beautify/
+      //licenza dovro stamparlo da qualche parte (sempre json)
+      //usa ajax per il numero di misure correnti
+
+      //in caso di errore fai sparire la prate sotto MisuraCorrente
+
       this.setState({dataPing: "/get_client_detail/?serial=id_client&type=ping"});
       this.setState({dataDownload: "/get_client_detail/?serial=id_client&type=download"});
       this.setState({dataUpload: "/get_client_detail/?serial=id_client&type=upload"});
-      //this.setState({: "/get_measures_detail/?serial=id_client&type=numMeasures"});
-      //this.setState({: "/get_measures_detail/?serial=id_client&type=licenseInfo"});
+      this.setState({misCorrenti: "/get_measures_detail/?serial=id_client&type=numMeasures"});
+      this.setState({licenza: "/get_measures_detail/?serial=id_client&type=licenseInfo"});
 
       //this.setState({par: ""}
 
