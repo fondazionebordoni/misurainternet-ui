@@ -6,9 +6,8 @@ const Pulsante = (props) => {
       <button className="btn btn-outline-primary btn-lg" style={{
         borderRadius: 3
       }} onClick={props.onClick}>
-        <span style={{
-          fontWeight: 'lighter'
-        }} className="pr-1 pl-1">
+        <span
+          className="pr-1 pl-1">
           START
         </span>
       </button>
