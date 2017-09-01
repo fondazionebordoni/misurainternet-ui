@@ -16,7 +16,7 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      licenceinfo: "",
+      licenceInfo: " ",
       speedtest: 'MIST',
       mostra: true,
       valore: 0,
@@ -317,7 +317,7 @@ class App extends Component {
       })
 
       $.ajax(settings).done(function(response) {
-        var misCorrenti = JSON.parse(response.licenceInfo);
+        var licenceInfo = JSON.parse(response.licenceInfo);
         this.setState({licenceInfo: licenceInfo});
       })
 
