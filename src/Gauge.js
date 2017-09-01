@@ -133,7 +133,7 @@ export default class Gauge extends Component {
       ? this.props.valueLabelStyle
       : {
         ...this.props.valueLabelStyle,
-        fontSize: (this.props.width / 6)
+        fontSize: (this.props.width / 8)
       });
     var {
       Cx,

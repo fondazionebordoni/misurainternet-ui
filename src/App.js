@@ -4,6 +4,7 @@ import MisuraCorrente from './MisuraCorrente';
 import Riepilogo from './Riepilogo';
 import Notifica from './Notifica'
 import ContenitoreIconeDiStato from './ContenitoreIconeDiStato';
+import $ from 'jquery';
 
 //se non si collega a nemesis all'avvio faccio partire mist.
 
@@ -15,6 +16,7 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      licenceinfo: "",
       speedtest: 'MIST',
       mostra: true,
       valore: 0,
@@ -294,12 +296,31 @@ class App extends Component {
       this.setState({dataPing: "/get_client_detail/?serial=id_client&type=ping"});
       this.setState({dataDownload: "/get_client_detail/?serial=id_client&type=download"});
       this.setState({dataUpload: "/get_client_detail/?serial=id_client&type=upload"});
-      this.setState({misCorrenti: "/get_measures_detail/?serial=id_client&type=numMeasures"});
-      this.setState({licenza: "/get_measures_detail/?serial=id_client&type=licenseInfo"});
 
-      //this.setState({par: ""}
+      //this.setState({misCorrenti: "/get_client_detail/?serial=id_client&type=numMeasures"});
+      //this.setState({licenza: "/get_client_detail/?serial=id_client&type=licenseInfo"});
 
-      //$('#par').text("Sono state effettuate " + response.up.length + " misurazioni su " + n_tot + ". " + msg);
+       var settings = {
+        "async" : true,
+        "crossDomain" : true,
+        "url" : "/get_client_detail/?serial=id_client&type=numMeasures",
+        "method" : "GET",
+        "headers" : {
+          "cache-control" : "no-cache",
+        },
+      //  dataType: "json"
+      }
+
+      $.ajax(settings).done(function(response) {
+        var misCorrenti = JSON.parse(response.numMeasures);
+        this.setState({misCorrenti: misCorrenti});
+      })
+
+      $.ajax(settings).done(function(response) {
+        var misCorrenti = JSON.parse(response.licenceInfo);
+        this.setState({licenceInfo: licenceInfo});
+      })
+
     }
   }
 
@@ -371,7 +392,7 @@ class App extends Component {
         <Intestazione hdr={this.state.hdr} par={this.state.par}/>
         <ContenitoreIconeDiStato statoEthernet={this.state.statoEthernet} statoCpu={this.state.statoCpu} statoRam={this.state.statoRam} statoWifi={this.state.statoWifi} cardEthernet={this.state.cardEthernet} cardCpu={this.state.cardCpu} cardRam={this.state.cardRam} cardWifi={this.state.cardWifi}/>
         <MisuraCorrente speedtest={this.state.speedtest} value={this.state.valore} unitMeasure={this.state.unitMeasure} gaugeColor={this.state.gaugeColor} pingValue={this.state.pingValue} downloadValue={this.state.downloadValue} uploadValue={this.state.uploadValue}/>
-        <Riepilogo misCorrenti={2} misTotali={96} dataPing={[
+        <Riepilogo misCorrenti={this.state.misCorrenti}  dataPing={[
           [
             1.0, 100.0
           ],

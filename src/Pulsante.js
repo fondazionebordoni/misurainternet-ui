@@ -2,7 +2,7 @@ import React from 'react';
 
 const Pulsante = (props) => {
   return (
-    <div className="text-xs-center mt-1">
+    <div className="text-xs-center">
       <button className="btn btn-outline-primary btn-lg" style={{
         borderRadius: 3
       }} onClick={props.onClick}>
