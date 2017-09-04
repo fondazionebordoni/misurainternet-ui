@@ -21,7 +21,7 @@ class App extends Component {
       mostra: true,
       valore: 0,
       misCorrenti: 0,
-      misure: [],
+      //misure: [],
       hdr: "MisuraInternet UI",
       par: <p>Interfaccia web per il monitoraggio della qualità degli accessi ad Internet da postazione fissa realizzato da AGCOM in collaborazione con la Fondazione Ugo Bordoni ed il supporto dell’Istituto Superiore delle Comunicazioni.</p>,
 
@@ -182,8 +182,9 @@ class App extends Component {
 
   updateTachometer(value) {
     this.setState({valore: value.toFixed(2)});
-    res.push(value);
+    /*res.push(value);
     this.setState({misure: this.state.misure.concat([[res.length, value]])});
+    */
   }
 
   displayTestN(n_test, n_tot, retry) {
@@ -276,11 +277,11 @@ class App extends Component {
 
   displayWaitView(serial, message, seconds) {
     //MIST:
-//on error->
-//in modalità speed test, l' utente può tornare in modalità nemesys ricaricando la pagina
-//richiedere il seriale
+    //on error->
+    //in modalità speed test, l' utente può tornare in modalità nemesys ricaricando la pagina
+    //richiedere il seriale
 
-
+    this.setState({hdr: "Nemesys è in attesa di effettuare una nuova misura."});
     this.setState({par: message})
 
     if (serial && serial.length > 0) {
@@ -300,15 +301,15 @@ class App extends Component {
       //this.setState({misCorrenti: "/get_client_detail/?serial=id_client&type=numMeasures"});
       //this.setState({licenza: "/get_client_detail/?serial=id_client&type=licenseInfo"});
 
-       var settings = {
-        "async" : true,
-        "crossDomain" : true,
-        "url" : "/get_client_detail/?serial=id_client&type=numMeasures",
-        "method" : "GET",
-        "headers" : {
-          "cache-control" : "no-cache",
+      var settings = {
+        "async": true,
+        "crossDomain": true,
+        "url": "/get_client_detail/?serial=id_client&type=numMeasures",
+        "method": "GET",
+        "headers": {
+          "cache-control": "no-cache"
         },
-      //  dataType: "json"
+        //  dataType: "json"
       }
 
       $.ajax(settings).done(function(response) {
@@ -392,17 +393,7 @@ class App extends Component {
         <Intestazione hdr={this.state.hdr} par={this.state.par}/>
         <ContenitoreIconeDiStato statoEthernet={this.state.statoEthernet} statoCpu={this.state.statoCpu} statoRam={this.state.statoRam} statoWifi={this.state.statoWifi} cardEthernet={this.state.cardEthernet} cardCpu={this.state.cardCpu} cardRam={this.state.cardRam} cardWifi={this.state.cardWifi}/>
         <MisuraCorrente speedtest={this.state.speedtest} value={this.state.valore} unitMeasure={this.state.unitMeasure} gaugeColor={this.state.gaugeColor} pingValue={this.state.pingValue} downloadValue={this.state.downloadValue} uploadValue={this.state.uploadValue}/>
-        <Riepilogo misCorrenti={this.state.misCorrenti}  dataPing={[
-          [
-            1.0, 100.0
-          ],
-          [2.0, 60.0]
-        ]} dataDownload={this.state.misure} dataUpload={[
-          [
-            1.0, 30.0
-          ],
-          [2.0, 40.0]
-        ]} notifiche={this.state.notifiche}/>
+        <Riepilogo misCorrenti={this.state.misCorrenti} dataPing={this.setState.dataPing} dataDownload={this.state.dataDownload} dataUpload={this.setState.dataUpload} notifiche={this.state.notifiche}/>
       </div>
     );
   }

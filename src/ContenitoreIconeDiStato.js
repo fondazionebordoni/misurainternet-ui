@@ -5,7 +5,7 @@ import ValoreMisuraCorrente from './ValoreMisuraCorrente'
 class ContenitoreIconeDiStato extends React.Component {
   render() {
     return (
-      <div className="mt-2 mb-2 ">
+      <div className=" ">
         <div className="row">
           <IconaStatoSistema card={this.props.cardEthernet} stato={this.props.statoEthernet} type="ETHERNET"/>
           <IconaStatoSistema card={this.props.cardCpu} stato={this.props.statoCpu} type="CPU"/>
