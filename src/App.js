@@ -59,6 +59,14 @@ class App extends Component {
       };
       this.send(JSON.stringify(req));
     }
+
+    //In caso di errore viene eseguito MIST
+    ws.onerror=function(){
+      //per il momento
+      this.displayError(1234);
+      this.setState({speedtest: 'MIST'});
+    }.bind(this)
+
     ws.onmessage = function(message) {
       var msg = JSON.parse(message.data);
       this.readMessage(msg);
@@ -377,6 +385,16 @@ class App extends Component {
                 <a href="/supporto/">
                   contatta il nostro helpdesk.</a>
               </p>
+          });
+        }
+        break;
+        case 1234: //TODO: cambiare codice errore
+        {
+          this.setState({
+            hdr: 'MisuraInternet - Speedtest',
+            par: <p>
+                  <b>Nemesys non è al momento operativo.</b> Puoi effettuare comunque una misurazione tramite Misurainternet Speedtest premendo sul tasto START. In alternativa <a href='/'>clicca qui</a> per tentare una nuova misurazione con Nemesys.
+                </p>
           });
         }
         break;
