@@ -51,8 +51,8 @@ class App extends Component {
   }
 
   componentDidMount() {
-    var ws = new WebSocket('ws://localhost:8080');
-    //var ws = new WebSocket('ws://localhost:54201/ws');
+    //var ws = new WebSocket('ws://localhost:8080'); // -> SERVER DI TEST
+    var ws = new WebSocket('ws://localhost:54201/ws');
 
     ws.onopen = function() {
       var req = {
@@ -343,12 +343,13 @@ class App extends Component {
      $.ajax(settingsNumMeasures).done(function(response) {
         var misCorrenti = JSON.parse(response.numMeasures);
         this.setState({misCorrenti: misCorrenti});
-      })
+      });
 
     $.ajax(settingsLicenceInfo).done(function(response) {
         var licenceInfo = JSON.parse(response.licenceInfo);
         this.setState({licenceInfo: licenceInfo});
-      })
+      });
+
     }
   }
 

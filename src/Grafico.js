@@ -1,12 +1,12 @@
 import React from 'react';
-import {LineChart} from 'react-chartkick';
+import {LineChart, ColumnChart} from 'react-chartkick';
 window.Highcharts = require('highcharts');
 
 class Grafico extends React.Component {
   render() {
     return (
       <div className="mb-3">
-        <LineChart library={{
+        <ColumnChart library={{
           xAxis: {
             tickmarkPlacement: 'on'
           },
