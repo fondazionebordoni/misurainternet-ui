@@ -52,6 +52,7 @@ class App extends Component {
 
   componentDidMount() {
     var ws = new WebSocket('ws://localhost:8080');
+    //var ws = new WebSocket('ws://localhost:54201/ws');
 
     ws.onopen = function() {
       var req = {
@@ -208,12 +209,19 @@ class App extends Component {
   }
 
   profilation(done) {
-    this.setState({mostra: false});
+    $(document).ready(function(){
+        $("#status").slideDown("slow");
+    });
+    //this.setState({mostra: false});
     if (done === "False") {
+      this.setState({cardEthernet: ""});
+      this.setState({cardCpu: ""});
+      this.setState({cardRam: ""});
+      this.setState({cardWifi: ""});
       this.setState({par: "Profilazione in corso..."});
       //faccio scomparire le card della profilazione a fine misurazione (da fare sul wait)  -> li mostro quando inizio la profilazione --- aggiungere animazione con jquery
     } else {
-      this.setState({mostra: true});
+      //this.setState({mostra: true});
     }
   }
 
@@ -292,24 +300,27 @@ class App extends Component {
     this.setState({hdr: "Nemesys è in attesa di effettuare una nuova misura."});
     this.setState({par: message})
 
+    $(document).ready(function(){
+        $("#status").slideUp("slow");
+    });
+
     if (serial && serial.length > 0) {
       //se non ho il seriale, nascondo i componenti dei Grafici
       //
 
-      //manda solo la richiesta e i file json di risposta  atom-beautify/
+      //manda solo la richiesta e i file json di risposta
       //licenza dovro stamparlo da qualche parte (sempre json)
       //usa ajax per il numero di misure correnti
 
-      //in caso di errore fai sparire la prate sotto MisuraCorrente
+      //in caso di errore fai sparire la parte sotto MisuraCorrente
+
+
 
       this.setState({dataPing: "/get_client_detail/?serial=id_client&type=ping"});
       this.setState({dataDownload: "/get_client_detail/?serial=id_client&type=download"});
       this.setState({dataUpload: "/get_client_detail/?serial=id_client&type=upload"});
 
-      //this.setState({misCorrenti: "/get_client_detail/?serial=id_client&type=numMeasures"});
-      //this.setState({licenza: "/get_client_detail/?serial=id_client&type=licenseInfo"});
-
-      var settings = {
+      var settingsNumMeasures = {
         "async": true,
         "crossDomain": true,
         "url": "/get_client_detail/?serial=id_client&type=numMeasures",
@@ -317,19 +328,27 @@ class App extends Component {
         "headers": {
           "cache-control": "no-cache"
         },
-        //  dataType: "json"
       }
 
-      $.ajax(settings).done(function(response) {
+      var settingsLicenceInfo = {
+        "async": true,
+        "crossDomain": true,
+        "url": "/get_client_detail/?serial=id_client&type=licenceInfo",
+        "method": "GET",
+        "headers": {
+          "cache-control": "no-cache"
+        },
+      }
+
+     $.ajax(settingsNumMeasures).done(function(response) {
         var misCorrenti = JSON.parse(response.numMeasures);
         this.setState({misCorrenti: misCorrenti});
       })
 
-      $.ajax(settings).done(function(response) {
+    $.ajax(settingsLicenceInfo).done(function(response) {
         var licenceInfo = JSON.parse(response.licenceInfo);
         this.setState({licenceInfo: licenceInfo});
       })
-
     }
   }
 
@@ -408,7 +427,7 @@ class App extends Component {
   render() {
     return (
       <div>
-        <Intestazione hdr={this.state.hdr} par={this.state.par}/>
+        <Intestazione hdr={this.state.hdr} licenceInfo={this.state.licenceInfo} par={this.state.par}/>
         <ContenitoreIconeDiStato statoEthernet={this.state.statoEthernet} statoCpu={this.state.statoCpu} statoRam={this.state.statoRam} statoWifi={this.state.statoWifi} cardEthernet={this.state.cardEthernet} cardCpu={this.state.cardCpu} cardRam={this.state.cardRam} cardWifi={this.state.cardWifi}/>
         <MisuraCorrente speedtest={this.state.speedtest} value={this.state.valore} unitMeasure={this.state.unitMeasure} gaugeColor={this.state.gaugeColor} pingValue={this.state.pingValue} downloadValue={this.state.downloadValue} uploadValue={this.state.uploadValue}/>
         <Riepilogo misCorrenti={this.state.misCorrenti} dataPing={this.setState.dataPing} dataDownload={this.state.dataDownload} dataUpload={this.setState.dataUpload} notifiche={this.state.notifiche}/>

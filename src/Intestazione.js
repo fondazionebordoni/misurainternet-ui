@@ -4,6 +4,7 @@ const Intestazione = (props) => {
   return (
     <div className={"mb-2"}>
       <h2>{props.hdr}</h2>
+      <div id="licence">{props.licence}</div>   
       {props.par}
     </div>
   )
