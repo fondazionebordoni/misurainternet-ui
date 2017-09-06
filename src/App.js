@@ -331,8 +331,12 @@ class App extends Component {
 
 
       this.setState({dataPing: "https://www.misurainternet.it//get_client_detail/?serial="+serial+"&type=ping"});
+      //this.setState({dataPing: [[0, 12],[1, 19]]});
       this.setState({dataDownload: "https://www.misurainternet.it//get_client_detail/?serial="+serial+"&type=download"});
+      //this.setState({dataDownload: [ [1.0, 100.0], [2.0, 60.0]]});
       this.setState({dataUpload: "https://www.misurainternet.it//get_client_detail/?serial="+serial+"&type=upload"});
+      //this.setState({dataUpload: [ [1.0, 100.0], [2.0, 60.0]]});
+
 
       var settingsNumMeasures = {
         "async": true,
@@ -456,7 +460,7 @@ class App extends Component {
         <Intestazione hdr={this.state.hdr} licenceInfo={this.state.licenceInfo} par={this.state.par}/>
         <ContenitoreIconeDiStato statoEthernet={this.state.statoEthernet} statoCpu={this.state.statoCpu} statoRam={this.state.statoRam} statoWifi={this.state.statoWifi} cardEthernet={this.state.cardEthernet} cardCpu={this.state.cardCpu} cardRam={this.state.cardRam} cardWifi={this.state.cardWifi}/>
         <MisuraCorrente onClick={this.handleClick} speedtest={this.state.speedtest} value={this.state.valore} unitMeasure={this.state.unitMeasure} gaugeColor={this.state.gaugeColor} pingValue={this.state.pingValue} downloadValue={this.state.downloadValue} uploadValue={this.state.uploadValue}/>
-        <Riepilogo misCorrenti={this.state.misCorrenti} dataPing={this.setState.dataPing} dataDownload={this.state.dataDownload} dataUpload={this.setState.dataUpload} notifiche={this.state.notifiche}/>
+        <Riepilogo misCorrenti={this.state.misCorrenti} dataPing={this.state.dataPing} dataDownload={this.state.dataDownload} dataUpload={this.state.dataUpload} notifiche={this.state.notifiche}/>
       </div>
     );
   }
