@@ -117,7 +117,7 @@ export default class Gauge extends Component {
     path += "A" + Ri + "," + Ri + " 0 0 0 " + (Cx - Ri) + "," + Cy + " ";
     path += "Z ";
 
-    console.log(path);
+    //console.log(path);
 
     return path;
   };
