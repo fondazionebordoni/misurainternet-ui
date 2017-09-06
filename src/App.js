@@ -316,14 +316,14 @@ class App extends Component {
 
 
 
-      this.setState({dataPing: "/get_client_detail/?serial=id_client&type=ping"});
-      this.setState({dataDownload: "/get_client_detail/?serial=id_client&type=download"});
-      this.setState({dataUpload: "/get_client_detail/?serial=id_client&type=upload"});
+      this.setState({dataPing: "https://www.misurainternet.it//get_client_detail/?serial="+serial+"&type=ping"});
+      this.setState({dataDownload: "https://www.misurainternet.it//get_client_detail/?serial="+serial+"&type=download"});
+      this.setState({dataUpload: "https://www.misurainternet.it//get_client_detail/?serial="+serial+"&type=upload"});
 
-      /*var settingsNumMeasures = {
+      var settingsNumMeasures = {
         "async": true,
         "crossDomain": true,
-        "url": "/get_client_detail/?serial=id_client&type=numMeasures",
+        "url": "https://www.misurainternet.it//get_client_detail/?serial="+serial+"&type=numMeasures",
         "method": "GET",
         "headers": {
           "cache-control": "no-cache"
@@ -333,7 +333,7 @@ class App extends Component {
       var settingsLicenceInfo = {
         "async": true,
         "crossDomain": true,
-        "url": "/get_client_detail/?serial=id_client&type=licenceInfo",
+        "url": "https://www.misurainternet.it//get_client_detail/?serial="+serial+"&type=licenseInfo",
         "method": "GET",
         "headers": {
           "cache-control": "no-cache"
@@ -341,15 +341,16 @@ class App extends Component {
       }
 
      $.ajax(settingsNumMeasures).done(function(response) {
-        var misCorrenti = JSON.parse(response.numMeasures);
-        this.setState({misCorrenti: misCorrenti});
-      });
+        console.log(response);
+        //var data = JSON.parse(response);
+        this.setState({misCorrenti: response.numMeasures});
+      }.bind(this));
 
     $.ajax(settingsLicenceInfo).done(function(response) {
-        var licenceInfo = JSON.parse(response.licenceInfo);
-        this.setState({licenceInfo: licenceInfo});
-      });*/
-
+        console.log(response);
+        //var data = JSON.parse(response);
+        this.setState({licenceInfo: response.licenseInfo});
+      }.bind(this));
     }
   }
 
