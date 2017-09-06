@@ -350,6 +350,7 @@ class App extends Component {
         console.log(response);
         //var data = JSON.parse(response);
         this.setState({licenceInfo: response.licenseInfo});
+
       }.bind(this));
     }
   }
