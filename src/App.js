@@ -48,6 +48,20 @@ class App extends Component {
     this.displayTestN = this.displayTestN.bind(this);
     this.profilation = this.profilation.bind(this);
     this.displayMeasureView = this.displayMeasureView.bind(this);
+    this.handleClick=this.handleClick.bind(this);
+  }
+
+  handleClick(){
+    $("#mistButton").attr("disabled",true);
+    var worker=new Worker(process.env.PUBLIC_URL + 'client.js');
+    var startMISTMsg={
+      request: 'startMeasure'
+    };
+    worker.postMessage(JSON.stringify(startMISTMsg));
+    worker.onmessage=function(message){
+      console.log(message.data);
+      this.readMessage(JSON.parse(message.data));
+    }.bind(this)
   }
 
   componentDidMount() {
@@ -356,8 +370,16 @@ class App extends Component {
   }
 
   displayEndView() {
-    this.setState({hdr: "Nemesys ha terminato le sue misurazioni"});
-    this.setState({par: "Le misurazioni sono state completate. Accedi all'area personale per scaricare il certificato."});
+    if(this.state.speedtest==='MIST'){
+      this.setState({hdr: "MisuraInternet Speedtest"});
+      this.setState({par: <p><b>Le misurazioni sono state completate.</b> Puoi effettuare una nuova misurazione cliccando sul tasto START. Qualora volessi riprendere ad effettuare le misurazioni con Nemesys, <a href='/'>clicca qui</a></p> });
+      $("#mistButton").removeAttr("disabled");
+    }
+    else{
+      this.setState({hdr: "Nemesys ha terminato le sue misurazioni"});
+      this.setState({par: "Le misurazioni sono state completate. Accedi all'area personale per scaricare il certificato."});
+    }
+
   }
 
   displayMeasureView(test_type, bw) {
@@ -412,10 +434,11 @@ class App extends Component {
         break;
         case 1234: //TODO: cambiare codice errore
         {
+          document.getElementById("titolo").innerHTML = "MisuraInternet Speedtest";
           this.setState({
-            hdr: 'MisuraInternet - Speedtest',
+            hdr: 'MisuraInternet Speedtest',
             par: <p>
-                  <b>Nemesys non è al momento operativo.</b> Puoi effettuare comunque una misurazione tramite Misurainternet Speedtest premendo sul tasto START. In alternativa <a href='/'>clicca qui</a> per tentare una nuova misurazione con Nemesys.
+                  <b>Nemesys non è al momento operativo oppure non è installato.</b> Puoi effettuare una misurazione tramite Misurainternet Speedtest premendo sul tasto START. In alternativa <a href='/'>clicca qui</a> per riprendere le misurazioni con Nemesys.
                 </p>
           });
         }
@@ -432,7 +455,7 @@ class App extends Component {
       <div>
         <Intestazione hdr={this.state.hdr} licenceInfo={this.state.licenceInfo} par={this.state.par}/>
         <ContenitoreIconeDiStato statoEthernet={this.state.statoEthernet} statoCpu={this.state.statoCpu} statoRam={this.state.statoRam} statoWifi={this.state.statoWifi} cardEthernet={this.state.cardEthernet} cardCpu={this.state.cardCpu} cardRam={this.state.cardRam} cardWifi={this.state.cardWifi}/>
-        <MisuraCorrente speedtest={this.state.speedtest} value={this.state.valore} unitMeasure={this.state.unitMeasure} gaugeColor={this.state.gaugeColor} pingValue={this.state.pingValue} downloadValue={this.state.downloadValue} uploadValue={this.state.uploadValue}/>
+        <MisuraCorrente onClick={this.handleClick} speedtest={this.state.speedtest} value={this.state.valore} unitMeasure={this.state.unitMeasure} gaugeColor={this.state.gaugeColor} pingValue={this.state.pingValue} downloadValue={this.state.downloadValue} uploadValue={this.state.uploadValue}/>
         <Riepilogo misCorrenti={this.state.misCorrenti} dataPing={this.setState.dataPing} dataDownload={this.state.dataDownload} dataUpload={this.setState.dataUpload} notifiche={this.state.notifiche}/>
       </div>
     );
