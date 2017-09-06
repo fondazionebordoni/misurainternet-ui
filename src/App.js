@@ -146,7 +146,7 @@ class App extends Component {
     if (listelements.length > 10) {
       listelements.splice(0, 1); //limito a 10 la lista di notifiche mostrate nella pagina
     }
-    this.setState({notifiche: listelements});
+    this.setState({notifiche: listelements.reverse()});
   }
 
   displayResult(test_type, result, error) {
@@ -320,7 +320,7 @@ class App extends Component {
       this.setState({dataDownload: "/get_client_detail/?serial=id_client&type=download"});
       this.setState({dataUpload: "/get_client_detail/?serial=id_client&type=upload"});
 
-      var settingsNumMeasures = {
+      /*var settingsNumMeasures = {
         "async": true,
         "crossDomain": true,
         "url": "/get_client_detail/?serial=id_client&type=numMeasures",
@@ -348,7 +348,7 @@ class App extends Component {
     $.ajax(settingsLicenceInfo).done(function(response) {
         var licenceInfo = JSON.parse(response.licenceInfo);
         this.setState({licenceInfo: licenceInfo});
-      });
+      });*/
 
     }
   }
