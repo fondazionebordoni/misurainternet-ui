@@ -52,7 +52,7 @@ class App extends Component {
   }
 
   handleClick() {
-    $("#mistButton").attr("disabled", true);
+    $('#mistButton').attr('disabled', 'disabled');
     var worker = new Worker(process.env.PUBLIC_URL + 'client.js');
     var startMISTMsg = {
       request: 'startMeasure'
