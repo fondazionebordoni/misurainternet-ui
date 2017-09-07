@@ -21,7 +21,7 @@ class App extends Component {
       mostra: true,
       valore: 0,
       misCorrenti: 0,
-      //misure: [],
+
       hdr: "MisuraInternet UI",
       par: <p>Interfaccia web per il monitoraggio della qualità degli accessi ad Internet da postazione fissa realizzato da AGCOM in collaborazione con la Fondazione Ugo Bordoni ed il supporto dell’Istituto Superiore delle Comunicazioni.</p>,
 
@@ -48,17 +48,17 @@ class App extends Component {
     this.displayTestN = this.displayTestN.bind(this);
     this.profilation = this.profilation.bind(this);
     this.displayMeasureView = this.displayMeasureView.bind(this);
-    this.handleClick=this.handleClick.bind(this);
+    this.handleClick = this.handleClick.bind(this);
   }
 
-  handleClick(){
-    $("#mistButton").attr("disabled",true);
-    var worker=new Worker(process.env.PUBLIC_URL + 'client.js');
-    var startMISTMsg={
+  handleClick() {
+    $("#mistButton").attr("disabled", true);
+    var worker = new Worker(process.env.PUBLIC_URL + 'client.js');
+    var startMISTMsg = {
       request: 'startMeasure'
     };
     worker.postMessage(JSON.stringify(startMISTMsg));
-    worker.onmessage=function(message){
+    worker.onmessage = function(message) {
       console.log(message.data);
       this.readMessage(JSON.parse(message.data));
     }.bind(this)
@@ -76,7 +76,7 @@ class App extends Component {
     }
 
     //In caso di errore viene eseguito MIST
-    ws.onerror=function(){
+    ws.onerror = function() {
       //per il momento
       this.displayError(1234);
       this.setState({speedtest: 'MIST'});
@@ -101,10 +101,10 @@ class App extends Component {
   readMessage(msg) {
 
     switch (msg.type) {
-      case "sys_resource": //
+      case "sys_resource":
         this.sysResource(msg.content.resource, msg.content.state, msg.content.info);
         break;
-      case "wait": //    /serial=id_client&
+      case "wait":
         this.displayWaitView(msg.serial, msg.content.message, msg.content.seconds);
         break;
       case "end":
@@ -116,19 +116,19 @@ class App extends Component {
       case "error":
         this.displayError(msg.content);
         break;
-      case "measure": //*
+      case "measure":
         this.displayMeasureView(msg.content.test_type, msg.content.bw);
         break;
-      case "tachometer": //
+      case "tachometer":
         this.updateTachometer(msg.content.value);
         break;
-      case "profilation": //
+      case "profilation":
         this.profilation(msg.content.done);
         break;
-      case "result": //*
+      case "result":
         this.displayResult(msg.content.test_type, msg.content.result, msg.content.error);
         break;
-      case "test": //*
+      case "test":
         this.displayTestN(msg.content.n_test, msg.content.n_tot, msg.content.retry);
         break;
       default:
@@ -205,9 +205,6 @@ class App extends Component {
 
   updateTachometer(value) {
     this.setState({valore: value.toFixed(2)});
-    /*res.push(value);
-    this.setState({misure: this.state.misure.concat([[res.length, value]])});
-    */
   }
 
   displayTestN(n_test, n_tot, retry) {
@@ -223,8 +220,8 @@ class App extends Component {
   }
 
   profilation(done) {
-    $(document).ready(function(){
-        $("#status").slideDown("slow");
+    $(document).ready(function() {
+      $("#status").slideDown("slow");
     });
     //this.setState({mostra: false});
     if (done === "False") {
@@ -233,7 +230,6 @@ class App extends Component {
       this.setState({cardRam: ""});
       this.setState({cardWifi: ""});
       this.setState({par: "Profilazione in corso..."});
-      //faccio scomparire le card della profilazione a fine misurazione (da fare sul wait)  -> li mostro quando inizio la profilazione --- aggiungere animazione con jquery
     } else {
       //this.setState({mostra: true});
     }
@@ -314,59 +310,54 @@ class App extends Component {
     this.setState({hdr: "Nemesys è in attesa di effettuare una nuova misura."});
     this.setState({par: message})
 
-    $(document).ready(function(){
-        $("#status").slideUp("slow");
+    $(document).ready(function() {
+      $("#status").slideUp("slow");
     });
 
     if (serial && serial.length > 0) {
       //se non ho il seriale, nascondo i componenti dei Grafici
-      //
-
-      //manda solo la richiesta e i file json di risposta
-      //licenza dovro stamparlo da qualche parte (sempre json)
-      //usa ajax per il numero di misure correnti
-
       //in caso di errore fai sparire la parte sotto MisuraCorrente
 
-
-
-      this.setState({dataPing: "https://www.misurainternet.it//get_client_detail/?serial="+serial+"&type=ping"});
+      this.setState({
+        dataPing: "https://www.misurainternet.it//get_client_detail/?serial=" + serial + "&type=ping"
+      });
       //this.setState({dataPing: [[0, 12],[1, 19]]});
-      this.setState({dataDownload: "https://www.misurainternet.it//get_client_detail/?serial="+serial+"&type=download"});
+      this.setState({
+        dataDownload: "https://www.misurainternet.it//get_client_detail/?serial=" + serial + "&type=download"
+      });
       //this.setState({dataDownload: [ [1.0, 100.0], [2.0, 60.0]]});
-      this.setState({dataUpload: "https://www.misurainternet.it//get_client_detail/?serial="+serial+"&type=upload"});
+      this.setState({
+        dataUpload: "https://www.misurainternet.it//get_client_detail/?serial=" + serial + "&type=upload"
+      });
       //this.setState({dataUpload: [ [1.0, 100.0], [2.0, 60.0]]});
-
 
       var settingsNumMeasures = {
         "async": true,
         "crossDomain": true,
-        "url": "https://www.misurainternet.it//get_client_detail/?serial="+serial+"&type=numMeasures",
+        "url": "https://www.misurainternet.it//get_client_detail/?serial=" + serial + "&type=numMeasures",
         "method": "GET",
         "headers": {
           "cache-control": "no-cache"
-        },
+        }
       }
 
       var settingsLicenceInfo = {
         "async": true,
         "crossDomain": true,
-        "url": "https://www.misurainternet.it//get_client_detail/?serial="+serial+"&type=licenseInfo",
+        "url": "https://www.misurainternet.it//get_client_detail/?serial=" + serial + "&type=licenseInfo",
         "method": "GET",
         "headers": {
           "cache-control": "no-cache"
-        },
+        }
       }
 
-     $.ajax(settingsNumMeasures).done(function(response) {
+      $.ajax(settingsNumMeasures).done(function(response) {
         console.log(response);
-        //var data = JSON.parse(response);
         this.setState({misCorrenti: response.numMeasures});
       }.bind(this));
 
-    $.ajax(settingsLicenceInfo).done(function(response) {
+      $.ajax(settingsLicenceInfo).done(function(response) {
         console.log(response);
-        //var data = JSON.parse(response);
         this.setState({licenceInfo: response.licenseInfo});
 
       }.bind(this));
@@ -374,12 +365,17 @@ class App extends Component {
   }
 
   displayEndView() {
-    if(this.state.speedtest==='MIST'){
+    if (this.state.speedtest === 'MIST') {
       this.setState({hdr: "MisuraInternet Speedtest"});
-      this.setState({par: <p><b>Le misurazioni sono state completate.</b> Puoi effettuare una nuova misurazione cliccando sul tasto START. Qualora volessi riprendere ad effettuare le misurazioni con Nemesys, <a href='/'>clicca qui</a></p> });
+      this.setState({
+        par: <p>
+            <b>Le misurazioni sono state completate.</b>
+            Puoi effettuare una nuova misurazione cliccando sul tasto START. Qualora volessi riprendere ad effettuare le misurazioni con Nemesys,
+            <a href='/'>clicca qui</a>
+          </p>
+      });
       $("#mistButton").removeAttr("disabled");
-    }
-    else{
+    } else {
       this.setState({hdr: "Nemesys ha terminato le sue misurazioni"});
       this.setState({par: "Le misurazioni sono state completate. Accedi all'area personale per scaricare il certificato."});
     }
@@ -393,21 +389,21 @@ class App extends Component {
     switch (test_type) {
       case "upload":
         {
-          this.setState({gaugeColor: '#4eb14e'})
+          this.setState({gaugeColor: '#28a745'})
           this.setState({hdr: "Test di upload in corso..."});
           this.setState({unitMeasure: "Mbit/s"});
         }
         break;
       case "download":
         {
-          this.setState({gaugeColor: '#66a0fd'})
+          this.setState({gaugeColor: '#007bff'})
           this.setState({hdr: "Test di download in corso..."});
           this.setState({unitMeasure: "Mbit/s"});
         }
         break;
       case "ping":
         {
-          this.setState({gaugeColor: '#ffcc00'});
+          this.setState({gaugeColor: '#ffc107'});
           this.setState({hdr: "Test di latenza in corso..."});
           this.setState({unitMeasure: "ms"});
         }
@@ -436,14 +432,16 @@ class App extends Component {
           });
         }
         break;
-        case 1234: //TODO: cambiare codice errore
+      case 1234: //TODO: cambiare codice errore
         {
           document.getElementById("titolo").innerHTML = "MisuraInternet Speedtest";
           this.setState({
-            hdr: 'MisuraInternet Speedtest',
-            par: <p>
-                  <b>Nemesys non è al momento operativo oppure non è installato.</b> Puoi effettuare una misurazione tramite Misurainternet Speedtest premendo sul tasto START. In alternativa <a href='/'>clicca qui</a> per riprendere le misurazioni con Nemesys.
-                </p>
+            hdr: 'MisuraInternet Speedtest', par: <p>
+                <b>Nemesys non è al momento operativo oppure non è installato.</b>
+                Puoi effettuare una misurazione tramite Misurainternet Speedtest premendo sul tasto START. In alternativa
+                <a href='/'>clicca qui</a>
+                per riprendere le misurazioni con Nemesys.
+              </p>
           });
         }
         break;
@@ -453,6 +451,7 @@ class App extends Component {
 
     this.setState({mostra: false});
   }
+
 
   render() {
     return (
@@ -466,35 +465,23 @@ class App extends Component {
   }
 }
 
+
 export default App;
 
 /*
-render() {
-  return (
-    <div>
-      <Intestazione hdr={this.state.hdr} par={this.state.par} />
-      {(this.state.mostra) ? (
-          <div>
-      <MisuraCorrente
-        value={this.state.valore}
-        unitMeasure={this.state.unitMeasure}
-        gaugeColor = {this.state.gaugeColor}
-        pingValue={this.state.pingValue}
-        downloadValue={this.state.downloadValue}
-        uploadValue={this.state.uploadValue}
-        />
-      <Riepilogo
-      misCorrenti={2}
-      misTotali={96}
-      dataPing={[ [1.0, 100.0], [2.0, 60.0]]}
-      dataDownload={this.state.misure}
-      dataUpload={[ [1.0, 30.0], [2.0, 40.0]]}
-      notifiche={this.state.notifiche}
-        /> </div>)
-         : <div></div>}
-    </div>
-  );
-}
+
+//Render di Test:
+
+  render() {
+    return (
+      <div>
+        <Intestazione hdr={this.state.hdr} licenceInfo={this.state.licenceInfo} par={this.state.par}/>
+        <ContenitoreIconeDiStato statoEthernet={this.state.statoEthernet} statoCpu={this.state.statoCpu} statoRam={this.state.statoRam} statoWifi={this.state.statoWifi} cardEthernet={this.state.cardEthernet} cardCpu={this.state.cardCpu} cardRam={this.state.cardRam} cardWifi={this.state.cardWifi}/>
+        <MisuraCorrente onClick={this.handleClick} speedtest={this.state.speedtest} value={this.state.valore} unitMeasure={this.state.unitMeasure} gaugeColor={this.state.gaugeColor} pingValue={this.state.pingValue} downloadValue={this.state.downloadValue} uploadValue={this.state.uploadValue}/>
+        <Riepilogo misCorrenti={2} dataPing={[ [1.0, 100.0], [2.0, 60.0]]} dataDownload={[ [1.0, 100.0], [2.0, 60.0]]} dataUpload={[ [1.0, 100.0], [2.0, 60.0]]} notifiche={this.state.notifiche}/>
+      </div>
+    );
+  }
 }
 
 export default App;

@@ -13,7 +13,7 @@ class Grafico extends React.Component {
           title: {
             text: this.props.titolo
           }
-        }} xtitle={this.props.xtitle} ytitle={this.props.ytitle} label={this.props.label} data={this.props.data}/>
+        }} xtitle={this.props.xtitle} ytitle={this.props.ytitle} label={this.props.label} data={this.props.data} colors={this.props.colors}/>
       </div>
     )
 
