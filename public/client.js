@@ -14,9 +14,11 @@ var sizes={
 	fiftyMB: 52428800
 };
 
-//TODO: Eliminare questa variabile globale mettendo delle variabili 'testFailed' locali a ciascuna funzione
+//TODO: Eliminare speedtestFailed mettendo delle variabili 'testFailed' locali a ciascuna funzione
 var speedTestGlobalVariables={
 	speedtestFailed: false,
+	testServer: null,
+	pingValue: null,
 };
 /*************END GLOBAL VARIABLES****************/
 
@@ -61,6 +63,157 @@ function generateTestData(numberOfMB){
 /*************END UTILITY FUNCTIONS****************/
 
 
+/*************Ping multiple servers (beta)***************/
+function pingTestBeta(arrayOfHostNames, times, maxTimeout, nextFunction){
+	var hostName=arrayOfHostNames[0];
+	console.log('INFO: Il server attualmente pingato è ' + hostName);
+	var firstPingDone=false;
+	var count=0;
+	var totalTime=0;
+	var t0=0;
+	var timeout;
+	var timeoutEventFired=false;
+	var ws=new WebSocket('ws://' + hostName);
+
+	//funzione di utilità per gestire errori, timeout oppure la terminazione del test di ping
+	var handleErrorsOrTimeoutsOrTestFinished= function(){
+		ws.close();
+		if(arrayOfHostNames.length===1){ //ho pingato l'ultimo server della lista di server passata come parametro alla funzione
+			if(nextFunction && speedTestGlobalVariables.testServer){
+				/*
+				self.postMessage(JSON.stringify(
+					{
+						type: 'result',
+						content: {
+							test_type: 'ping',
+							result: speedTestGlobalVariables.pingValue
+						}
+					}
+				));*/
+				console.log(speedTestGlobalVariables);
+				nextFunction();
+			}
+			else if(!speedTestGlobalVariables.testServer){
+				//Nessun server mi ha risposto e quindi non eseguo la prossima funziona e mando un messaggio di errore all'interfaccia. (TODO)
+				console.log('ERR: Impossibile pingare i server passati come parametro');
+			}
+		}
+
+		//altrimenti, pingo i server restanti
+		else{
+			arrayOfHostNames.shift(); //rimuovo l'elemento in testa all'array
+			console.log(arrayOfHostNames);
+			console.log(times);
+			console.log(nextFunction);
+			pingTestBeta(arrayOfHostNames, times, maxTimeout, nextFunction);
+		}
+
+	} //end handleErrorsOrTimeoutsOrTestFinished function
+
+
+	//altra funzione di utilità per mandare, tramite websocket, delle stringe vuote
+	var sendPingMessage= function(){
+		t0=Date.now();
+		ws.send('');
+		timeout=setTimeout(function(){
+			timeoutEventFired=true;
+			console.log('Timeout event fired!')
+			handleErrorsOrTimeoutsOrTestFinished();
+		},maxTimeout);
+	}
+
+
+
+	/*
+	TODO: Da mettere prima che venga chiamata la funzione pingTest
+	self.postMessage(JSON.stringify(
+		{
+			type: 'measure',
+			content: {
+				'test_type': 'ping'
+			}
+		}
+	));*/
+
+	ws.onopen=function(){
+		sendPingMessage();
+	}
+
+	ws.onerror=function(){
+		console.log('ERR: test di ping fallito per ws.onerror!');
+		handleErrorsOrTimeoutsOrTestFinished();
+	}
+
+	ws.onmessage=function(){
+		if(timeoutEventFired){
+			return;
+		}
+
+		var tf=Date.now();
+		clearTimeout(timeout);
+
+		if(!firstPingDone){  //escludo il primo ping
+			var firstPingValue= tf - t0;
+			firstPingDone=true;
+			console.log('INFO: Primo ping!');
+			console.log('INFO: Il valore del primo ping è ' + firstPingValue);
+			console.log('___________________________________________________');
+			sendPingMessage();
+		}
+
+		else{
+			count++;
+			var latency= tf - t0;
+			totalTime+=latency;
+
+			console.log('INFO: Sono stati effettuati ' + count + ' ping');
+			console.log('INFO: Il ping è ' + latency + 'ms');
+			console.log('INFO: Il tempo TOTALE è ' + totalTime + 'ms');
+
+			if(count===times){
+				var pingAvgValue=totalTime/count;
+				console.log('___________________________________________________');
+				console.log('END: Misura terminata!');
+				console.log('END: Sono stati effettuati in tutto ' + count + ' misurazioni');
+				console.log('END: La media è ' + pingAvgValue + 'ms');
+				console.log('___________________________________________________');
+				console.log('___________________________________________________');
+				console.log('___________________________________________________');
+
+				if(speedTestGlobalVariables.testServer===null && speedTestGlobalVariables.pingValue===null){ //primo server che viene pingato
+					console.log('INFO: Primo server ad essere pingato!');
+					speedTestGlobalVariables.testServer=hostName;
+					speedTestGlobalVariables.pingValue=pingAvgValue;
+					console.log('INFO: speedTestGlobalVariables.testServer è ' + speedTestGlobalVariables.testServer);
+					console.log('INFO: speedTestGlobalVariables.pingValue è ' + speedTestGlobalVariables.pingValue);
+				}
+				else{
+					if(pingAvgValue<speedTestGlobalVariables.pingValue){
+						console.log('INFO: Il valore di ping calcolato è inferiore a quello attuale!');
+						speedTestGlobalVariables.testServer=hostName;
+						speedTestGlobalVariables.pingValue=pingAvgValue;
+						console.log('INFO: speedTestGlobalVariables.testServer è ' + speedTestGlobalVariables.testServer);
+						console.log('INFO: speedTestGlobalVariables.pingValue è ' + speedTestGlobalVariables.pingValue);
+					}
+					//TODO: Eliminare poi il ramo else
+					else{
+						console.log('INFO: Il valore di ping calcolato è maggiore rispetto a quello salvato nella variabile globale');
+					}
+				}
+
+				//Funzione per gestire il passaggio a un altro server da pingare oppure all'esecuzione della prossima funzione
+				handleErrorsOrTimeoutsOrTestFinished();
+			}
+
+			else{ //non ho finito il test, devo pingare ancora il server in questione
+				sendPingMessage();
+			}
+		}
+
+	} //end onmessage
+
+}
+/*************End ping multiple servers************/
 
 /*************Ping test****************/
 function pingTest(hostName, times, nextFunction){
@@ -119,7 +272,7 @@ function pingTest(hostName, times, nextFunction){
 						type: 'result',
 						content: {
 							test_type: 'ping',
-							result: latency
+							result: latency //TODO: Sbagliato!
 						}
 					}
 				));
