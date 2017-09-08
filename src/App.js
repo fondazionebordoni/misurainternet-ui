@@ -17,7 +17,7 @@ class App extends Component {
     super(props);
     this.state = {
       licenceInfo: " ",
-      speedtest: 'MIST',
+      currentSpeedtest: 'Nemesys',
       mostra: true,
       valore: 0,
       misCorrenti: 0,
@@ -89,7 +89,7 @@ class App extends Component {
     ws.onerror = function() {
       //per il momento
       this.displayError(1234);
-      this.setState({speedtest: 'MIST'});
+      this.setState({currentSpeedtest: 'MIST'});
     }.bind(this)
 
     ws.onmessage = function(message) {
@@ -375,11 +375,11 @@ class App extends Component {
   }
 
   displayEndView() {
-    if (this.state.speedtest === 'MIST') {
+    if (this.state.currentSpeedtest === 'MIST') {
       this.setState({hdr: "MisuraInternet Speedtest"});
       this.setState({
         par: <p>
-            <b>Le misurazioni sono state completate.</b>
+            <b>Le misurazioni sono state completate. </b>
             Puoi effettuare una nuova misurazione cliccando sul tasto START. Qualora volessi riprendere ad effettuare le misurazioni con Nemesys, <a href='/'>clicca qui</a>
           </p>,
         unitMeasure: "",
@@ -528,8 +528,8 @@ class App extends Component {
       <div>
         <Intestazione hdr={this.state.hdr} licenceInfo={this.state.licenceInfo} par={this.state.par}/>
         <ContenitoreIconeDiStato statoEthernet={this.state.statoEthernet} statoCpu={this.state.statoCpu} statoRam={this.state.statoRam} statoWifi={this.state.statoWifi} cardEthernet={this.state.cardEthernet} cardCpu={this.state.cardCpu} cardRam={this.state.cardRam} cardWifi={this.state.cardWifi}/>
-        <MisuraCorrente onClick={this.handleClick} speedtest={this.state.speedtest} value={this.state.valore} unitMeasure={this.state.unitMeasure} gaugeColor={this.state.gaugeColor} pingValue={this.state.pingValue} downloadValue={this.state.downloadValue} uploadValue={this.state.uploadValue}/>
-        <Riepilogo misCorrenti={this.state.misCorrenti} dataPing={this.state.dataPing} dataDownload={this.state.dataDownload} dataUpload={this.state.dataUpload} notifiche={this.state.notifiche}/>
+        <MisuraCorrente onClick={this.handleClick} currentSpeedtest={this.state.currentSpeedtest} value={this.state.valore} unitMeasure={this.state.unitMeasure} gaugeColor={this.state.gaugeColor} pingValue={this.state.pingValue} downloadValue={this.state.downloadValue} uploadValue={this.state.uploadValue}/>
+        <Riepilogo currentSpeedtest={this.state.currentSpeedtest} misCorrenti={this.state.misCorrenti} dataPing={this.state.dataPing} dataDownload={this.state.dataDownload} dataUpload={this.state.dataUpload} notifiche={this.state.notifiche}/>
       </div>
     );
   }
@@ -547,7 +547,7 @@ export default App;
       <div>
         <Intestazione hdr={this.state.hdr} licenceInfo={this.state.licenceInfo} par={this.state.par}/>
         <ContenitoreIconeDiStato statoEthernet={this.state.statoEthernet} statoCpu={this.state.statoCpu} statoRam={this.state.statoRam} statoWifi={this.state.statoWifi} cardEthernet={this.state.cardEthernet} cardCpu={this.state.cardCpu} cardRam={this.state.cardRam} cardWifi={this.state.cardWifi}/>
-        <MisuraCorrente onClick={this.handleClick} speedtest={this.state.speedtest} value={this.state.valore} unitMeasure={this.state.unitMeasure} gaugeColor={this.state.gaugeColor} pingValue={this.state.pingValue} downloadValue={this.state.downloadValue} uploadValue={this.state.uploadValue}/>
+        <MisuraCorrente onClick={this.handleClick} currentSpeedtest={this.state.currentSpeedtest} value={this.state.valore} unitMeasure={this.state.unitMeasure} gaugeColor={this.state.gaugeColor} pingValue={this.state.pingValue} downloadValue={this.state.downloadValue} uploadValue={this.state.uploadValue}/>
         <Riepilogo misCorrenti={2} dataPing={[ [1.0, 100.0], [2.0, 60.0]]} dataDownload={[ [1.0, 100.0], [2.0, 60.0]]} dataUpload={[ [1.0, 100.0], [2.0, 60.0]]} notifiche={this.state.notifiche}/>
       </div>
     );

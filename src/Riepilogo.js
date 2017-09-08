@@ -7,8 +7,9 @@ class Riepilogo extends React.Component {
   render() {
     return (
       <div className="mt-3 mb-2">
-        <InfoRiepilogo misCorrenti={this.props.misCorrenti}/>
-        <TabellaNotifiche notifiche={this.props.notifiche}/>
+        <h3>Informazioni di riepilogo</h3>
+        {this.props.currentSpeedtest!="MIST" && <InfoRiepilogo misCorrenti={this.props.misCorrenti}/>}
+        {this.props.currentSpeedtest!="MIST" && <TabellaNotifiche notifiche={this.props.notifiche}/>}
         <Grafici dataPing={this.props.dataPing} dataDownload={this.props.dataDownload} dataUpload={this.props.dataUpload}/>
       </div>
     )
