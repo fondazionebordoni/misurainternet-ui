@@ -52,10 +52,20 @@ class App extends Component {
   }
 
   handleClick() {
+    this.setState({
+      unitMeasure: "",
+      gaugeColor: "#0275d8",
+      pingValue: 0,
+      downloadValue: 0,
+      uploadValue: 0,
+      valore: 0,
+    });
     $('#mistButton').attr('disabled', 'disabled');
     var worker = new Worker(process.env.PUBLIC_URL + 'client.js');
+    var arrayDiProva=['ec2-34-210-59-77.us-west-2.compute.amazonaws.com:8080','ec2-34-210-59-77.us-west-2.compute.amazonaws.com:8080'];
     var startMISTMsg = {
-      request: 'startMeasure'
+      request: 'startMeasure',
+      servers: arrayDiProva
     };
     worker.postMessage(JSON.stringify(startMISTMsg));
     worker.onmessage = function(message) {
@@ -370,9 +380,10 @@ class App extends Component {
       this.setState({
         par: <p>
             <b>Le misurazioni sono state completate.</b>
-            Puoi effettuare una nuova misurazione cliccando sul tasto START. Qualora volessi riprendere ad effettuare le misurazioni con Nemesys,
-            <a href='/'>clicca qui</a>
-          </p>
+            Puoi effettuare una nuova misurazione cliccando sul tasto START. Qualora volessi riprendere ad effettuare le misurazioni con Nemesys, <a href='/'>clicca qui</a>
+          </p>,
+        unitMeasure: "",
+        gaugeColor: "#0275d8",
       });
       $("#mistButton").removeAttr("disabled");
     } else {
@@ -391,14 +402,14 @@ class App extends Component {
         {
           this.setState({gaugeColor: '#28a745'})
           this.setState({hdr: "Test di upload in corso..."});
-          this.setState({unitMeasure: "Mbit/s"});
+          this.setState({unitMeasure: "Mb/s"});
         }
         break;
       case "download":
         {
           this.setState({gaugeColor: '#007bff'})
           this.setState({hdr: "Test di download in corso..."});
-          this.setState({unitMeasure: "Mbit/s"});
+          this.setState({unitMeasure: "Mb/s"});
         }
         break;
       case "ping":
@@ -432,17 +443,76 @@ class App extends Component {
           });
         }
         break;
-      case 1234: //TODO: cambiare codice errore
+      case 1234: //Errore connessione websocket
         {
           document.getElementById("titolo").innerHTML = "MisuraInternet Speedtest";
           this.setState({
-            hdr: 'MisuraInternet Speedtest', par: <p>
-                <b>Nemesys non è al momento operativo oppure non è installato.</b>
-                Puoi effettuare una misurazione tramite Misurainternet Speedtest premendo sul tasto START. In alternativa
-                <a href='/'>clicca qui</a>
-                per riprendere le misurazioni con Nemesys.
-              </p>
+            hdr: 'MisuraInternet Speedtest',
+            par: <p>
+                  <b>Nemesys non è al momento operativo oppure non è installato. </b>
+                  Puoi effettuare una misurazione tramite Misurainternet Speedtest premendo sul tasto START. In alternativa <a href='/'>clicca qui</a> per riprendere le misurazioni con Nemesys.
+                </p>,
+            unitMeasure: "",
+            gaugeColor: "#0275d8",
+            pingValue: 0,
+            downloadValue: 0,
+            uploadValue: 0,
+            valore: 0,
           });
+        }
+        break;
+      case 1235: //Errore nell'esecuzione del test di ping in MIST
+        {
+          this.setState({
+            hdr: 'MisuraInternet Speedtest - Errore',
+            par: <p>
+                  <b>Errore nel test di ping. </b>
+                  Puoi effettuare nuovamente la misurazione con MisuraInternet Speedtest cliccando sul tasto START. Qualora volessi riprendere ad effettuare le misurazioni con Nemesys, <a href='/'>clicca qui</a>
+                </p>,
+            unitMeasure: "",
+            gaugeColor: "#0275d8",
+            pingValue: 0,
+            downloadValue: 0,
+            uploadValue: 0,
+            valore: 0,
+          });
+          $("#mistButton").removeAttr("disabled");
+        }
+        break;
+      case 1236: //Errore nell'esecuzione del test di download in MIST
+        {
+          this.setState({
+            hdr: 'MisuraInternet Speedtest - Errore',
+            par: <p>
+                  <b>Errore nel test di download. </b>
+                  Puoi effettuare nuovamente la misurazione con MisuraInternet Speedtest cliccando sul tasto START. Qualora volessi riprendere ad effettuare le misurazioni con Nemesys, <a href='/'>clicca qui</a>
+                </p>,
+            unitMeasure: "",
+            gaugeColor: "#0275d8",
+            pingValue: 0,
+            downloadValue: 0,
+            uploadValue: 0,
+            valore: 0,
+          });
+          $("#mistButton").removeAttr("disabled");
+        }
+        break;
+      case 1237: //Errore nell'esecuzione del test di upload in MIST
+        {
+          this.setState({
+            hdr: 'MisuraInternet Speedtest - Errore',
+            par: <p>
+                  <b>Errore nel test di upload.</b>
+                  Puoi effettuare nuovamente la misurazione con MisuraInternet Speedtest cliccando sul tasto START. Qualora volessi riprendere ad effettuare le misurazioni con Nemesys, <a href='/'>clicca qui</a>
+                </p>,
+            unitMeasure: "",
+            gaugeColor: "#0275d8",
+            pingValue: 0,
+            downloadValue: 0,
+            uploadValue: 0,
+            valore: 0,
+          });
+          $("#mistButton").removeAttr("disabled");
         }
         break;
       default:

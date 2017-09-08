@@ -5,7 +5,8 @@
 		-> https://github.com/adolfintel/speedtest/blob/master/speedtest_worker.js
 */
 
-/*************GLOBAL VARIABLES****************/
+/*************Global variables****************/
+//TODO: Eliminare in fase di produzione la variabile globale sizes
 var sizes={
 	oneKB: 1024,
 	oneMB: 1048576,
@@ -14,17 +15,14 @@ var sizes={
 	fiftyMB: 52428800
 };
 
-//TODO: Eliminare speedtestFailed mettendo delle variabili 'testFailed' locali a ciascuna funzione
 var speedTestGlobalVariables={
-	speedtestFailed: false,
 	testServer: null,
 	pingValue: null,
 };
-/*************END GLOBAL VARIABLES****************/
 
 
 
-/*************UTILITY FUNCTIONS****************/
+/*************Utility functions****************/
 function terminateWorker(){
 	var response={
 		type: 'end'
@@ -60,7 +58,6 @@ function generateTestData(numberOfMB){
 	var testDataBlob= new Blob(array);
 	return testDataBlob;
 }
-/*************END UTILITY FUNCTIONS****************/
 
 
 /*************Ping multiple servers (beta)***************/
@@ -80,7 +77,7 @@ function pingTestBeta(arrayOfHostNames, times, maxTimeout, nextFunction){
 		ws.close();
 		if(arrayOfHostNames.length===1){ //ho pingato l'ultimo server della lista di server passata come parametro alla funzione
 			if(nextFunction && speedTestGlobalVariables.testServer){
-				/*
+
 				self.postMessage(JSON.stringify(
 					{
 						type: 'result',
@@ -89,13 +86,21 @@ function pingTestBeta(arrayOfHostNames, times, maxTimeout, nextFunction){
 							result: speedTestGlobalVariables.pingValue
 						}
 					}
-				));*/
+				));
+
 				console.log(speedTestGlobalVariables);
 				nextFunction();
 			}
 			else if(!speedTestGlobalVariables.testServer){
 				//Nessun server mi ha risposto e quindi non eseguo la prossima funziona e mando un messaggio di errore all'interfaccia. (TODO)
 				console.log('ERR: Impossibile pingare i server passati come parametro');
+
+				self.postMessage(JSON.stringify(
+					{
+						type: 'error',
+						content: 1235
+					}
+				));
 			}
 		}
 
@@ -120,20 +125,7 @@ function pingTestBeta(arrayOfHostNames, times, maxTimeout, nextFunction){
 			console.log('Timeout event fired!')
 			handleErrorsOrTimeoutsOrTestFinished();
 		},maxTimeout);
-	}
-
-
-
-	/*
-	TODO: Da mettere prima che venga chiamata la funzione pingTest
-	self.postMessage(JSON.stringify(
-		{
-			type: 'measure',
-			content: {
-				'test_type': 'ping'
-			}
-		}
-	));*/
+	}// end sendPingMessage
 
 	ws.onopen=function(){
 		sendPingMessage();
@@ -150,7 +142,7 @@ function pingTestBeta(arrayOfHostNames, times, maxTimeout, nextFunction){
 		}
 
 		var tf=Date.now();
-		clearTimeout(timeout);
+		clearTimeout(timeout);  //rimuovo il timeout che avevo impostato al momento dell'invio del messaggio in websocket dato che ho ricevuto il messaggio di risposta prima che scattasse il timeout
 
 		if(!firstPingDone){  //escludo il primo ping
 			var firstPingValue= tf - t0;
@@ -213,16 +205,11 @@ function pingTestBeta(arrayOfHostNames, times, maxTimeout, nextFunction){
 	} //end onmessage
 
 }
-/*************End ping multiple servers************/
 
-/*************Ping test****************/
-function pingTest(hostName, times, nextFunction){
-	var firstPingDone=false;
-	var count=0;
-	var totalTime=0;
-	var t0=0;
-	var ws=new WebSocket('ws://' + hostName);
 
+/**************Ping code wrapper*************/
+/*L'unico motivo per cui ho definito questa funzione è per fare in modo che postMessage alla ui di 'inizio ping' fosse all'interno di una funzione correlata al ping. Sicuramente c'è un modo migliore di fare questa cosa*/
+function pingCodeWrapper(arrayOfHostNames, times, maxTimeout, nextFunction){
 	self.postMessage(JSON.stringify(
 		{
 			type: 'measure',
@@ -231,75 +218,9 @@ function pingTest(hostName, times, nextFunction){
 			}
 		}
 	));
-
-	ws.onopen=function(){
-		t0=Date.now();
-		ws.send('');
-	}
-
-	ws.onerror=function(){
-		console.log('ERR: test di ping fallito!');
-		speedTestGlobalVariables.speedtestFailed=true;
-		ws.close();
-	}
-
-	ws.onmessage=function(){
-		var tf=Date.now();
-
-		if(!firstPingDone){  //escludo il primo ping
-			var firstPingValue= tf - t0;
-			firstPingDone=true;
-			console.log('INFO: Primo ping!');
-			console.log('INFO: Il valore del primo ping è ' + firstPingValue);
-			console.log('___________________________________________________');
-			t0=Date.now();
-			ws.send('');
-		}
-
-		else{
-			count++;
-			var latency= tf - t0;
-			totalTime+=latency;
-
-			console.log('INFO: Sono stati effettuati ' + count + ' ping');
-			console.log('INFO: Il ping è ' + latency + 'ms');
-			console.log('INFO: Il tempo TOTALE è ' + totalTime + 'ms');
-
-			if(count===times){
-
-				self.postMessage(JSON.stringify(
-					{
-						type: 'result',
-						content: {
-							test_type: 'ping',
-							result: latency //TODO: Sbagliato!
-						}
-					}
-				));
-
-				console.log('___________________________________________________');
-				console.log('END: Misura terminata!');
-				console.log('END: Sono stati effettuati in tutto ' + count + ' misurazioni');
-				console.log('END: La media è ' + totalTime/count + 'ms');
-				console.log('___________________________________________________');
-				console.log('___________________________________________________');
-				console.log('___________________________________________________');
-				ws.close();
-				if(nextFunction!=undefined){
-					nextFunction();
-				}
-			}
-			else{
-				t0=Date.now();
-				ws.send('');
-			}
-		}
-
-	} //end onmessage
-
+	pingTestBeta(arrayOfHostNames, times, maxTimeout, nextFunction);
 }
-/*************End ping test****************/
-
+/**************End Ping code wrapper*************/
 
 
 /*************Download test****************/
@@ -311,6 +232,8 @@ function downloadTest(hostName, bytesToDownload, numberOfStreams, timeout, thres
 	var downloadedBytes=0;
 	var testDone=false;
 	var xhrArray=[];
+	var firstInterval;
+	var secondInterval;
 
 	self.postMessage(JSON.stringify(
 		{
@@ -342,8 +265,22 @@ function downloadTest(hostName, bytesToDownload, numberOfStreams, timeout, thres
 			//TODO: mettere nell'onerror tutta la logica per fermare lo speedtest rendendo globali gli interval
 			xhrArray[index].onerror=function(event){
 				console.log('ERR: Onerror event fired at stream ' + index);
-				speedTestGlobalVariables.speedtestFailed=true;
-				xhrArray[index].abort();
+				closeAllConnections(xhrArray);
+				if(firstInterval){
+					clearInterval(firstInterval);
+				}
+				if(secondInterval){
+					clearInterval(secondInterval);
+				}
+
+				console.log('ERR: Fallito test di download');
+
+				self.postMessage(JSON.stringify(
+					{
+						type: 'error',
+						content: 1236
+					}
+				));
 			}
 
 			xhrArray[index].onload=function(event){
@@ -355,6 +292,7 @@ function downloadTest(hostName, bytesToDownload, numberOfStreams, timeout, thres
 				request:'download',
 				data_length:numOfBytes
 			};
+
 			var jsonReq=JSON.stringify(req);
 			var url = 'http://' + hostName + '?r=' + Math.random()+ "&data=" + encodeURIComponent(jsonReq);
 			xhrArray[index].open('GET',url);
@@ -367,14 +305,7 @@ function downloadTest(hostName, bytesToDownload, numberOfStreams, timeout, thres
 		downloadStream(i,bytesToDownload,i*100);
 	}
 
-	var firstInterval = setInterval(function () {
-		if(speedTestGlobalVariables.speedtestFailed){
-			closeAllConnections(xhrArray);
-			clearInterval(firstInterval);
-			console.log('ERR: Fallito test di download');
-			return;
-		}
-
+	firstInterval = setInterval(function () {
 		var tf=Date.now();
 		var deltaTime=tf - previousDownloadTime;
 		var currentlyDownloadedBytes = downloadedBytes;
@@ -400,14 +331,7 @@ function downloadTest(hostName, bytesToDownload, numberOfStreams, timeout, thres
 			downloadedBytes = 0;
 			clearInterval(firstInterval);
 
-			var secondInterval= setInterval(function(){
-				if(speedTestGlobalVariables.speedtestFailed){
-					closeAllConnections(xhrArray);
-					clearInterval(secondInterval);
-					console.log('ERR: Fallito test di download')
-					return;
-				}
-
+			secondInterval= setInterval(function(){
 				var time= Date.now();
 				var downloadTime= time - measureStartTime;
 				var downloadSpeedInMbs=(downloadedBytes*8/1000)/downloadTime;
@@ -448,11 +372,11 @@ function downloadTest(hostName, bytesToDownload, numberOfStreams, timeout, thres
 					console.log('___________________________________________________');
 
 					//esegui, se presente, la successiva funzione
-					if(nextFunction!=undefined){
+					if(nextFunction){
 						nextFunction();
 					}
 				}
-			},500)
+			},300)
 		}
 	}, 3000)
 
@@ -469,6 +393,8 @@ function uploadTest(hostName, bytesToUpload, numberOfStreams, timeout, threshold
 	var uploadedBytes=0;
 	var testDone=false;
 	var xhrArray=[];
+	var firstInterval;
+	var secondInterval;
 
 	self.postMessage(JSON.stringify(
 		{
@@ -500,8 +426,22 @@ function uploadTest(hostName, bytesToUpload, numberOfStreams, timeout, threshold
 			//TODO: mettere nell'onerror tutta la logica per fermare lo speedtest rendendo globali gli interval
 			xhrArray[index].onerror=function(event){
 				console.log('ERR: Onerror event fired at stream ' + index);
-				speedTestGlobalVariables.speedtestFailed=true;
-				xhrArray[index].abort();
+				closeAllConnections(xhrArray);
+				if(firstInterval){
+					clearInterval(firstInterval);
+				}
+				if(secondInterval){
+					clearInterval(secondInterval);
+				}
+
+				console.log('ERR: Fallito test di upload');
+
+				self.postMessage(JSON.stringify(
+					{
+						type: 'error',
+						content: 1237
+					}
+				));
 			}
 
 			xhrArray[index].upload.onload=function(event){
@@ -520,15 +460,7 @@ function uploadTest(hostName, bytesToUpload, numberOfStreams, timeout, threshold
 		uploadStream(i,testData,i*100);
 	}
 
-	var firstInterval = setInterval(function () {
-
-		if(speedTestGlobalVariables.speedtestFailed){
-			closeAllConnections(xhrArray);
-			clearInterval(firstInterval);
-			console.log('ERR: Fallito test di upload');
-			return;
-		}
-
+	firstInterval = setInterval(function () {
 		var tf=Date.now();
 		var deltaTime=tf - previousUploadTime;
 		var currentlyUploadedBytes = uploadedBytes;
@@ -554,14 +486,7 @@ function uploadTest(hostName, bytesToUpload, numberOfStreams, timeout, threshold
 			uploadedBytes = 0;
 			clearInterval(firstInterval);
 
-			var secondInterval= setInterval(function(){
-				if(speedTestGlobalVariables.speedtestFailed){
-					closeAllConnections(xhrArray);
-					clearInterval(secondInterval);
-					console.log('ERR: Fallito test di upload')
-					return;
-				}
-
+			secondInterval= setInterval(function(){
 				var time= Date.now();
 				var uploadTime=time - measureStartTime;
 				var uploadSpeedInMbs=(uploadedBytes*8/1000)/uploadTime;
@@ -604,7 +529,7 @@ function uploadTest(hostName, bytesToUpload, numberOfStreams, timeout, threshold
 						nextFunction();
 					}
 				}
-			},500)
+			},300)
 		}
 	}, 3000)
 
@@ -612,21 +537,18 @@ function uploadTest(hostName, bytesToUpload, numberOfStreams, timeout, threshold
 /*************End upload test****************/
 
 /*************Speedtest****************/
-function startSpeedtest(numOfPings, numOfMB, numOfStreams, hostName){
+function startSpeedtest(arrayOfServers, numOfPings, numOfMB, numOfStreams){
 	var timesToPing=4;
-	var serverNameAndPort='ec2-34-210-59-77.us-west-2.compute.amazonaws.com:8080';
-	var bytesToDownload=sizes.twentyMB;
-	var bytesToUpload=sizes.twentyMB;
+	var pingMaxTimeout=1000; //ms
+	var bytesToDownload=sizes.fiftyMB;
+	var bytesToUpload=sizes.fiftyMB;
 	var numberOfDownloadStreams=6;
 	var numberOfUploadStreams=6;
-	var downloadTestTimeout=10000;
-	var uploadTestTimeout=10000;
+	var downloadTestTimeout=10000; //ms
+	var uploadTestTimeout=10000; //ms
 	var downloadTestThreshold=0.10;
 	var uploadTestThreshold=0.10;
 
-	if(hostName){
-		serverNameAndPort=hostName;
-	}
 	if(numOfPings){
 		timesToPing=numOfPings;
 	}
@@ -646,13 +568,15 @@ function startSpeedtest(numOfPings, numOfMB, numOfStreams, hostName){
 	console.log('INFO: bytesToUpload è pari a  ' + bytesToUpload);
 	console.log('INFO: Inizia lo speedtest!');
 
-	pingTest(serverNameAndPort,timesToPing,function(){
-		downloadTest(serverNameAndPort,bytesToDownload,numberOfDownloadStreams,downloadTestTimeout,downloadTestThreshold,
-			function(){
-				uploadTest(serverNameAndPort,bytesToUpload,numberOfUploadStreams,uploadTestTimeout,uploadTestThreshold,terminateWorker);
-			}
-		)
-	});
+	pingCodeWrapper(arrayOfServers, timesToPing, 1000,
+		function(){
+			downloadTest(speedTestGlobalVariables.testServer,bytesToDownload,numberOfDownloadStreams,downloadTestTimeout,downloadTestThreshold,
+				function(){
+					uploadTest(speedTestGlobalVariables.testServer,bytesToUpload,numberOfUploadStreams,uploadTestTimeout,uploadTestThreshold,terminateWorker);
+				}
+			)
+		}
+	);
 }
 /*************End speedtest****************/
 
@@ -662,8 +586,8 @@ function startSpeedtest(numOfPings, numOfMB, numOfStreams, hostName){
 function workerListener(){
 	self.onmessage=function(message){
 		var req=JSON.parse(message.data);
-		if(req.request && req.request==='startMeasure'){
-			startSpeedtest();
+		if(req.request && req.request==='startMeasure' && req.servers && req.servers.length>0){
+			startSpeedtest(req.servers);
 		}
 	}
 }
