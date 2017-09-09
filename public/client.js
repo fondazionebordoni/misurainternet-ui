@@ -344,6 +344,15 @@ function downloadTest(hostName, bytesToDownload, numberOfStreams, timeout, thres
 		console.log('INFO: Velocita ATTUALE(Mbs): '+ instSpeedInMbs);
 		console.log('INFO: Differenza percentuale: ' + percentDiff*100 + '%');
 
+		self.postMessage(JSON.stringify(
+			{
+				type: 'prequalification',
+				content: {
+					value: instSpeedInMbs
+				}
+			}
+		));
+
 		previousDownloadTime=tf;
 		previouslyDownloadedBytes= currentlyDownloadedBytes;
 		prevInstSpeedInMbs=instSpeedInMbs;
@@ -404,9 +413,9 @@ function downloadTest(hostName, bytesToDownload, numberOfStreams, timeout, thres
 						nextFunction();
 					}
 				}
-			},300)
+			},200)
 		}
-	}, 3000)
+	}, 2000)
 
 }
 /*************End download test****************/
@@ -509,6 +518,15 @@ function uploadTest(hostName, bytesToUpload, numberOfStreams, timeout, threshold
 		console.log('INFO: Velocita ATTUALE(Mbs): '+ instSpeedInMbs);
 		console.log('INFO: Differenza percentuale: ' + percentDiff*100 + '%');
 
+		self.postMessage(JSON.stringify(
+			{
+				type: 'prequalification',
+				content: {
+					value: instSpeedInMbs
+				}
+			}
+		));
+
 		previousUploadTime=tf;
 		previouslyUploadedBytes= currentlyUploadedBytes;
 		prevInstSpeedInMbs=instSpeedInMbs;
@@ -567,9 +585,9 @@ function uploadTest(hostName, bytesToUpload, numberOfStreams, timeout, threshold
 						nextFunction();
 					}
 				}
-			},300)
+			},200)
 		}
-	}, 3000)
+	}, 2000)
 
 }
 /*************End upload test****************/
@@ -607,7 +625,7 @@ function startSpeedtest(arrayOfServers, numOfPings, numOfMB, numOfStreams){
 	console.log('INFO: bytesToUpload è pari a  ' + bytesToUpload);
 	console.log('INFO: Inizia lo speedtest!');
 
-	pingCodeWrapper(arrayOfServers, timesToPing, 1000,
+	pingCodeWrapper(arrayOfServers, timesToPing, pingMaxTimeout,
 		function(){
 			downloadTest(speedTestGlobalVariables.server,bytesToDownload,numberOfDownloadStreams,downloadTestTimeout,downloadTestThreshold,
 				function(){

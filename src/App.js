@@ -45,6 +45,7 @@ class App extends Component {
 
     this.componentDidMount = this.componentDidMount.bind(this);
     this.updateTachometer = this.updateTachometer.bind(this);
+    this.displayPrequalificationValue=this.displayPrequalificationValue.bind(this);
     this.readMessage = this.readMessage.bind(this);
     this.displayTestN = this.displayTestN.bind(this);
     this.profilation = this.profilation.bind(this);
@@ -109,7 +110,7 @@ class App extends Component {
 
     //In caso di errore viene eseguito MIST
     ws.onerror = function() {
-      //per il momento
+      //TODO: Resettare gli URI dei grafici in caso di onerror
       this.displayError(1234);
       this.setState({isNeMeSysRunning: false});
     }.bind(this)
@@ -162,6 +163,9 @@ class App extends Component {
         break;
       case "test":
         this.displayTestN(msg.content.n_test, msg.content.n_tot, msg.content.retry);
+        break;
+      case "prequalification": //Vale solo per MIST e si riferisce alla prequalifica che viene effettuata prima della misurazione vera e propria
+        this.displayPrequalificationValue(msg.content.value);
         break;
       case "speedtest": //MIST ha terminato di effettuare le misure
         this.handleMISTResults(msg);
@@ -239,7 +243,17 @@ class App extends Component {
   }
 
   updateTachometer(value) {
+    if(!this.state.isNeMeSysRunning){
+      this.setState({par: 'Misurazione in corso...'});
+    }
     this.setState({valore: value.toFixed(2)});
+  }
+
+  displayPrequalificationValue(value){
+    this.setState({
+      par: 'Prequalifica in corso, attendere prego...',
+      valore: value.toFixed(2)
+    });
   }
 
   displayTestN(n_test, n_tot, retry) {
@@ -469,7 +483,6 @@ class App extends Component {
         }
         break;
       case 1234: //Errore connessione websocket
-        {
           document.getElementById("titolo").innerHTML = "MisuraInternet Speedtest";
           this.setState({
             hdr: 'MisuraInternet Speedtest',
@@ -484,10 +497,8 @@ class App extends Component {
             uploadValue: 0,
             valore: 0,
           });
-        }
-        break;
+          break;
       case 1235: //Errore nell'esecuzione del test di ping in MIST
-        {
           this.setState({
             hdr: 'MisuraInternet Speedtest - Errore',
             par: <p>
@@ -502,10 +513,8 @@ class App extends Component {
             valore: 0,
           });
           $("#mistButton").removeAttr("disabled");
-        }
-        break;
+          break;
       case 1236: //Errore nell'esecuzione del test di download in MIST
-        {
           this.setState({
             hdr: 'MisuraInternet Speedtest - Errore',
             par: <p>
@@ -520,10 +529,8 @@ class App extends Component {
             valore: 0,
           });
           $("#mistButton").removeAttr("disabled");
-        }
-        break;
+          break;
       case 1237: //Errore nell'esecuzione del test di upload in MIST
-        {
           this.setState({
             hdr: 'MisuraInternet Speedtest - Errore',
             par: <p>
@@ -538,8 +545,7 @@ class App extends Component {
             valore: 0,
           });
           $("#mistButton").removeAttr("disabled");
-        }
-        break;
+          break;
       default:
         this.setState({par: errorMsg});
     }
