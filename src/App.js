@@ -42,6 +42,7 @@ class App extends Component {
       cardRam: "",
       cardWifi: " "
     }
+
     this.componentDidMount = this.componentDidMount.bind(this);
     this.updateTachometer = this.updateTachometer.bind(this);
     this.readMessage = this.readMessage.bind(this);
@@ -49,6 +50,7 @@ class App extends Component {
     this.profilation = this.profilation.bind(this);
     this.displayMeasureView = this.displayMeasureView.bind(this);
     this.handleClick = this.handleClick.bind(this);
+    this.handleMISTResults=this.handleMISTResults.bind(this);
   }
 
   handleClick() {
@@ -60,6 +62,7 @@ class App extends Component {
       uploadValue: 0,
       valore: 0,
     });
+
     $('#mistButton').attr('disabled', 'disabled');
     var worker = new Worker(process.env.PUBLIC_URL + 'client.js');
     var arrayDiProva=['ec2-34-210-59-77.us-west-2.compute.amazonaws.com:8080','ec2-34-210-59-77.us-west-2.compute.amazonaws.com:8080'];
@@ -72,6 +75,25 @@ class App extends Component {
       console.log(message.data);
       this.readMessage(JSON.parse(message.data));
     }.bind(this)
+  }
+
+  handleMISTResults(measureResults){
+    console.log(measureResults);
+    var jsonResultData=JSON.stringify(measureResults);
+    var ajax_sendMISTMeasures_settings = {
+      "async": true,
+      "url": "http://localhost:1234",  //TODO: Cambiarlo poi con /set_measures/
+      "method": "POST",
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "application/json"
+      },
+      "data": jsonResultData,
+    }
+    $.ajax(ajax_sendMISTMeasures_settings).done(function(response){
+      console.log(response);
+      this.displayEndView();
+    }.bind(this));
   }
 
   componentDidMount() {
@@ -140,6 +162,9 @@ class App extends Component {
         break;
       case "test":
         this.displayTestN(msg.content.n_test, msg.content.n_tot, msg.content.retry);
+        break;
+      case "speedtest": //MIST ha terminato di effettuare le misure
+        this.handleMISTResults(msg);
         break;
       default:
         console.log("Wrong message");
@@ -329,22 +354,22 @@ class App extends Component {
       //in caso di errore fai sparire la parte sotto MisuraCorrente
 
       this.setState({
-        dataPing: "https://www.misurainternet.it//get_client_detail/?serial=" + serial + "&type=ping"
+        dataPing: "https://www.misurainternet.it/get_client_detail/?serial=" + serial + "&type=ping"
       });
       //this.setState({dataPing: [[0, 12],[1, 19]]});
       this.setState({
-        dataDownload: "https://www.misurainternet.it//get_client_detail/?serial=" + serial + "&type=download"
+        dataDownload: "https://www.misurainternet.it/get_client_detail/?serial=" + serial + "&type=download"
       });
       //this.setState({dataDownload: [ [1.0, 100.0], [2.0, 60.0]]});
       this.setState({
-        dataUpload: "https://www.misurainternet.it//get_client_detail/?serial=" + serial + "&type=upload"
+        dataUpload: "https://www.misurainternet.it/get_client_detail/?serial=" + serial + "&type=upload"
       });
       //this.setState({dataUpload: [ [1.0, 100.0], [2.0, 60.0]]});
 
       var settingsNumMeasures = {
         "async": true,
         "crossDomain": true,
-        "url": "https://www.misurainternet.it//get_client_detail/?serial=" + serial + "&type=numMeasures",
+        "url": "https://www.misurainternet.it/get_client_detail/?serial=" + serial + "&type=numMeasures",
         "method": "GET",
         "headers": {
           "cache-control": "no-cache"
@@ -527,7 +552,7 @@ class App extends Component {
     return (
       <div>
         <Intestazione hdr={this.state.hdr} licenceInfo={this.state.licenceInfo} par={this.state.par}/>
-        <ContenitoreIconeDiStato statoEthernet={this.state.statoEthernet} statoCpu={this.state.statoCpu} statoRam={this.state.statoRam} statoWifi={this.state.statoWifi} cardEthernet={this.state.cardEthernet} cardCpu={this.state.cardCpu} cardRam={this.state.cardRam} cardWifi={this.state.cardWifi}/>
+        {this.state.currentSpeedtest!='MIST' && <ContenitoreIconeDiStato statoEthernet={this.state.statoEthernet} statoCpu={this.state.statoCpu} statoRam={this.state.statoRam} statoWifi={this.state.statoWifi} cardEthernet={this.state.cardEthernet} cardCpu={this.state.cardCpu} cardRam={this.state.cardRam} cardWifi={this.state.cardWifi}/>}
         <MisuraCorrente onClick={this.handleClick} currentSpeedtest={this.state.currentSpeedtest} value={this.state.valore} unitMeasure={this.state.unitMeasure} gaugeColor={this.state.gaugeColor} pingValue={this.state.pingValue} downloadValue={this.state.downloadValue} uploadValue={this.state.uploadValue}/>
         <Riepilogo currentSpeedtest={this.state.currentSpeedtest} misCorrenti={this.state.misCorrenti} dataPing={this.state.dataPing} dataDownload={this.state.dataDownload} dataUpload={this.state.dataUpload} notifiche={this.state.notifiche}/>
       </div>
