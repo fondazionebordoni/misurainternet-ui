@@ -25,11 +25,4 @@ class ValoreMisuraCorrente extends React.Component {
   }
 }
 
-ValoreMisuraCorrente.propTypes = {
-  icon: React.PropTypes.string,
-  header: React.PropTypes.string,
-  value: React.PropTypes.number,
-  unit: React.PropTypes.string
-};
-
 export default ValoreMisuraCorrente;

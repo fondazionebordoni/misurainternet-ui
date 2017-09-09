@@ -1,6 +1,5 @@
 import React from 'react';
 import IconaStatoSistema from './IconaStatoSistema';
-import ValoreMisuraCorrente from './ValoreMisuraCorrente'
 
 class ContenitoreIconeDiStato extends React.Component {
   render() {

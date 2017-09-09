@@ -14,8 +14,4 @@ const Pulsante = (props) => {
   )
 }
 
-Pulsante.propTypes = {
-  onClick: React.PropTypes.func
-};
-
 export default Pulsante;

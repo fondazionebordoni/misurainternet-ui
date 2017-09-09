@@ -1,5 +1,4 @@
 import React from 'react';
-import Notifica from './Notifica'
 
 class TabellaNotifiche extends React.Component {
   render() {

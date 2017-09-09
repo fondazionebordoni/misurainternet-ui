@@ -18,10 +18,5 @@ class ContenitoreValoriMisuraCorrente extends React.Component {
   }
 }
 
-ContenitoreValoriMisuraCorrente.propTypes = {
-  pingValue: React.PropTypes.number,
-  downloadValue: React.PropTypes.number,
-  uploadValue: React.PropTypes.number
-};
 
 export default ContenitoreValoriMisuraCorrente;

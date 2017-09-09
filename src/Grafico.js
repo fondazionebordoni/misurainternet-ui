@@ -1,5 +1,5 @@
 import React from 'react';
-import {LineChart, ColumnChart} from 'react-chartkick';
+import {ColumnChart} from 'react-chartkick';
 window.Highcharts = require('highcharts');
 
 class Grafico extends React.Component {
@@ -19,13 +19,5 @@ class Grafico extends React.Component {
 
   }
 }
-
-Grafico.propTypes = {
-  titolo: React.PropTypes.string,
-  xtitle: React.PropTypes.string,
-  ytitle: React.PropTypes.string,
-  //aggiungere poi la prop 'data'
-  label: React.PropTypes.string
-};
 
 export default Grafico
