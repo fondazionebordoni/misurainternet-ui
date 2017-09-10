@@ -24,8 +24,6 @@ var speedTestGlobalVariables={
 	tests: [],
 };
 
-
-
 /*************Utility functions****************/
 function terminateWorker(){
 	speedTestGlobalVariables.stop= (new Date()).toISOString();

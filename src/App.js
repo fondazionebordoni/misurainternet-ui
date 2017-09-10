@@ -15,7 +15,9 @@ var client_id = null;
 class App extends Component {
   constructor(props) {
     super(props);
+    this.mistClientId;
     this.state = {
+      mistTestServers: null,
       licenceInfo: " ",
       isNeMeSysRunning: true,
       mostra: true,
@@ -66,10 +68,9 @@ class App extends Component {
 
     $('#mistButton').attr('disabled', 'disabled');
     var worker = new Worker(process.env.PUBLIC_URL + 'client.js');
-    var arrayDiProva=['ec2-34-210-59-77.us-west-2.compute.amazonaws.com:8080','ec2-34-210-59-77.us-west-2.compute.amazonaws.com:8080'];
     var startMISTMsg = {
       request: 'startMeasure',
-      servers: arrayDiProva
+      servers: this.state.mistTestServers
     };
     worker.postMessage(JSON.stringify(startMISTMsg));
     worker.onmessage = function(message) {
@@ -80,21 +81,28 @@ class App extends Component {
 
   handleMISTResults(measureResults){
     console.log(measureResults);
-    var jsonResultData=JSON.stringify(measureResults);
-    var ajax_sendMISTMeasures_settings = {
-      "async": true,
-      "url": "http://localhost:1234",  //TODO: Cambiarlo poi con /set_measures/
-      "method": "POST",
-      "headers": {
-        "cache-control": "no-cache",
-        "content-type": "application/json"
-      },
-      "data": jsonResultData,
+    if(this.mistClientId && this.mistClientId.length>0){
+      measureResults.serial=this.mistClientId;
+      var jsonResultData=JSON.stringify(measureResults);
+      var ajax_sendMISTMeasures_settings = {
+        "async": true,
+        "url": "http://localhost:1234",  //TODO: Cambiarlo poi con /set_measures/
+        "method": "POST",
+        "headers": {
+          "cache-control": "no-cache",
+          "content-type": "application/json"
+        },
+        "data": jsonResultData,
+      }
+      $.ajax(ajax_sendMISTMeasures_settings).done(function(response){
+        console.log(response);
+        this.displayEndView();
+      }.bind(this));
     }
-    $.ajax(ajax_sendMISTMeasures_settings).done(function(response){
-      console.log(response);
+    else{
       this.displayEndView();
-    }.bind(this));
+    }
+
   }
 
   componentDidMount() {
@@ -110,9 +118,45 @@ class App extends Component {
 
     //In caso di errore viene eseguito MIST
     ws.onerror = function() {
-      //TODO: Resettare gli URI dei grafici in caso di onerror
-      this.displayError(1234);
+      //TODO: Resettare gli URI dei grafici, i valori del gauge, quelli di ping, download e upload in caso di onerror
       this.setState({isNeMeSysRunning: false});
+      this.displayError(1234);
+
+      var ajax_getMISTSerial_settings = {
+        "async": true,
+        "url": "http://localhost:1235",  //TODO: Cambiarlo poi con /get_serial/?type=speedtest
+        "method": "GET",
+        "headers": {
+          "cache-control": "no-cache",
+        }
+      }
+      $.ajax(ajax_getMISTSerial_settings).done(function(response){
+        this.mistClientId=(JSON.parse(response)).serial;
+        console.log(this.mistClientId);
+        this.displayWaitView(this.mistClientId);
+      }.bind(this));
+
+      var ajax_getMISTServers_settings = {
+        "async": true,
+        "url": "http://localhost:1236",  //TODO: Cambiarlo poi con /get_servers/?type=speedtest
+        "method": "GET",
+        "headers": {
+          "cache-control": "no-cache",
+        }
+      }
+      $.ajax(ajax_getMISTServers_settings).done(function(response){
+        var responseObj=JSON.parse(response);
+        var arrayOfServers=[];
+        for(var i=0; i<responseObj.servers.length; i++){
+          arrayOfServers.push(responseObj.servers[i].ip);
+        }
+        console.log(arrayOfServers);
+        this.setState({
+          mistTestServers: arrayOfServers
+        });
+      }.bind(this));
+
+
     }.bind(this)
 
     ws.onmessage = function(message) {
@@ -355,13 +399,15 @@ class App extends Component {
     //on error->
     //in modalità speed test, l' utente può tornare in modalità nemesys ricaricando la pagina
     //richiedere il seriale
+    if(this.state.isNeMeSysRunning){
+      this.setState({hdr: "Nemesys è in attesa di effettuare una nuova misura."});
+      this.setState({par: message})
 
-    this.setState({hdr: "Nemesys è in attesa di effettuare una nuova misura."});
-    this.setState({par: message})
+      $(document).ready(function() {
+        $("#status").slideUp("slow");
+      });
+    }
 
-    $(document).ready(function() {
-      $("#status").slideUp("slow");
-    });
 
     if (serial && serial.length > 0) {
       //se non ho il seriale, nascondo i componenti dei Grafici
@@ -380,36 +426,38 @@ class App extends Component {
       });
       //this.setState({dataUpload: [ [1.0, 100.0], [2.0, 60.0]]});
 
-      var settingsNumMeasures = {
-        "async": true,
-        "crossDomain": true,
-        "url": "https://www.misurainternet.it/get_client_detail/?serial=" + serial + "&type=numMeasures",
-        "method": "GET",
-        "headers": {
-          "cache-control": "no-cache"
+      if(this.state.isNeMeSysRunning){
+        var settingsNumMeasures = {
+          "async": true,
+          "crossDomain": true,
+          "url": "https://www.misurainternet.it/get_client_detail/?serial=" + serial + "&type=numMeasures",
+          "method": "GET",
+          "headers": {
+            "cache-control": "no-cache"
+          }
         }
-      }
 
-      var settingsLicenceInfo = {
-        "async": true,
-        "crossDomain": true,
-        "url": "https://www.misurainternet.it//get_client_detail/?serial=" + serial + "&type=licenseInfo",
-        "method": "GET",
-        "headers": {
-          "cache-control": "no-cache"
+        var settingsLicenceInfo = {
+          "async": true,
+          "crossDomain": true,
+          "url": "https://www.misurainternet.it//get_client_detail/?serial=" + serial + "&type=licenseInfo",
+          "method": "GET",
+          "headers": {
+            "cache-control": "no-cache"
+          }
         }
+
+        $.ajax(settingsNumMeasures).done(function(response) {
+          console.log(response);
+          this.setState({misCorrenti: response.numMeasures});
+        }.bind(this));
+
+        $.ajax(settingsLicenceInfo).done(function(response) {
+          console.log(response);
+          this.setState({licenceInfo: response.licenseInfo});
+        }.bind(this));
+
       }
-
-      $.ajax(settingsNumMeasures).done(function(response) {
-        console.log(response);
-        this.setState({misCorrenti: response.numMeasures});
-      }.bind(this));
-
-      $.ajax(settingsLicenceInfo).done(function(response) {
-        console.log(response);
-        this.setState({licenceInfo: response.licenseInfo});
-
-      }.bind(this));
     }
   }
 
@@ -559,8 +607,8 @@ class App extends Component {
       <div>
         <Intestazione hdr={this.state.hdr} licenceInfo={this.state.licenceInfo} par={this.state.par}/>
         {this.state.isNeMeSysRunning && <ContenitoreIconeDiStato statoEthernet={this.state.statoEthernet} statoCpu={this.state.statoCpu} statoRam={this.state.statoRam} statoWifi={this.state.statoWifi} cardEthernet={this.state.cardEthernet} cardCpu={this.state.cardCpu} cardRam={this.state.cardRam} cardWifi={this.state.cardWifi}/>}
-        <MisuraCorrente onClick={this.handleClick} isNeMeSysRunning={this.state.isNeMeSysRunning} value={this.state.valore} unitMeasure={this.state.unitMeasure} gaugeColor={this.state.gaugeColor} pingValue={this.state.pingValue} downloadValue={this.state.downloadValue} uploadValue={this.state.uploadValue}/>
-        <Riepilogo isNeMeSysRunning={this.state.isNeMeSysRunning} misCorrenti={this.state.misCorrenti} dataPing={this.state.dataPing} dataDownload={this.state.dataDownload} dataUpload={this.state.dataUpload} notifiche={this.state.notifiche}/>
+        <MisuraCorrente onClick={this.handleClick} areMistTestServersAvailable={this.state.mistTestServers} isNeMeSysRunning={this.state.isNeMeSysRunning} value={this.state.valore} unitMeasure={this.state.unitMeasure} gaugeColor={this.state.gaugeColor} pingValue={this.state.pingValue} downloadValue={this.state.downloadValue} uploadValue={this.state.uploadValue}/>
+        {(this.state.isNeMeSysRunning || (this.state.dataPing && this.state.dataDownload && this.state.dataUpload)) && <Riepilogo isNeMeSysRunning={this.state.isNeMeSysRunning} misCorrenti={this.state.misCorrenti} dataPing={this.state.dataPing} dataDownload={this.state.dataDownload} dataUpload={this.state.dataUpload} notifiche={this.state.notifiche}/>}
       </div>
     );
   }
