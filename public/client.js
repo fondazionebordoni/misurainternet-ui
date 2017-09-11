@@ -70,7 +70,7 @@ function pingCodeWrapper(arrayOfHostNames, times, maxTimeout, nextFunction){
 		avgValue: null // è ridondante però forse rende più comprensibile il codice del ping
 	};
 
-	/*************Ping multiple servers (beta)***************/
+	/*************Ping multiple servers***************/
 	function pingTest(arrayOfHostNames, times, maxTimeout, nextFunction){
 		var hostName=arrayOfHostNames[0];
 		console.log('INFO: Il server attualmente pingato è ' + hostName);
@@ -149,7 +149,7 @@ function pingCodeWrapper(arrayOfHostNames, times, maxTimeout, nextFunction){
 			console.log('ERR: test di ping fallito per ws.onerror!');
 			handleErrorsOrTimeoutsOrTestFinished();
 		}
-
+		
 		ws.onmessage=function(){
 			if(timeoutEventFired){
 				return;
@@ -268,7 +268,7 @@ function downloadTest(hostName, bytesToDownload, numberOfStreams, timeout, thres
 	));
 
 	/*****download stream function*******/
-	var downloadStream= function(index,numOfBytes,delay) {
+	var downloadStream= function(index,delay) {
 		setTimeout(function(){
 
 			var prevLoadedBytes=0;
@@ -280,7 +280,7 @@ function downloadTest(hostName, bytesToDownload, numberOfStreams, timeout, thres
 			xhrArray[index]=xhr;
 
 			xhrArray[index].onprogress=function(event){
-				var loadedBytes= event.loaded - prevLoadedBytes;
+				var loadedBytes= event.loaded <= 0 ? 0 : (event.loaded - prevLoadedBytes);  //può accadere che event.loaded sia minore o uguale a zero?
 				downloadedBytes+=loadedBytes;
 				prevLoadedBytes=event.loaded;
 			}
@@ -307,12 +307,12 @@ function downloadTest(hostName, bytesToDownload, numberOfStreams, timeout, thres
 
 			xhrArray[index].onload=function(event){
 				xhrArray[index].abort();
-				downloadStream(index,numOfBytes,0);
+				downloadStream(index,0);
 			}
 
 			var req={
 				request:'download',
-				data_length:numOfBytes
+				data_length: bytesToDownload
 			};
 
 			var jsonReq=JSON.stringify(req);
@@ -324,7 +324,7 @@ function downloadTest(hostName, bytesToDownload, numberOfStreams, timeout, thres
 	/*****end download stream function*******/
 
 	for(var i=0;i<numberOfStreams;i++){
-		downloadStream(i,bytesToDownload,i*100);
+		downloadStream(i,i*100);
 	}
 
 	firstInterval = setInterval(function () {
@@ -413,7 +413,7 @@ function downloadTest(hostName, bytesToDownload, numberOfStreams, timeout, thres
 				}
 			},200)
 		}
-	}, 2000)
+	}, 3000)
 
 }
 /*************End download test****************/
@@ -447,7 +447,7 @@ function uploadTest(hostName, bytesToUpload, numberOfStreams, timeout, threshold
 	));
 
 	/***************upload stream*************/
-	function uploadStream(index,dataToUpload,delay) {
+	function uploadStream(index,delay) {
 		setTimeout(function(){
 
 			var prevUploadedBytes=0;
@@ -459,12 +459,11 @@ function uploadTest(hostName, bytesToUpload, numberOfStreams, timeout, threshold
 			xhrArray[index]=xhr;
 
 			xhrArray[index].upload.onprogress=function(event){
-				var loadedBytes= event.loaded - prevUploadedBytes;
+				var loadedBytes= event.loaded <= 0 ? 0 : (event.loaded - prevUploadedBytes); //può accadere che event.loaded sia minore o uguale a zero?
 				uploadedBytes+=loadedBytes;
 				prevUploadedBytes=event.loaded;
 			}
 
-			//TODO: mettere nell'onerror tutta la logica per fermare lo speedtest rendendo globali gli interval
 			xhrArray[index].onerror=function(event){
 				console.log('ERR: Onerror event fired at stream ' + index);
 				closeAllConnections(xhrArray);
@@ -487,18 +486,18 @@ function uploadTest(hostName, bytesToUpload, numberOfStreams, timeout, threshold
 
 			xhrArray[index].upload.onload=function(event){
 				xhrArray[index].abort();
-				uploadStream(index,dataToUpload,0);
+				uploadStream(index,0);
 			}
 
 			var url = 'http://' + hostName + '?r=' + Math.random();
 			xhrArray[index].open('POST',url);
-			xhrArray[index].send(dataToUpload);
+			xhrArray[index].send(testData);
 		},delay);
 	}
 	/***************end upload stream *************/
 
 	for(var i=0;i<numberOfStreams;i++){
-		uploadStream(i,testData,i*100);
+		uploadStream(i,i*100);
 	}
 
 	firstInterval = setInterval(function () {
@@ -585,7 +584,7 @@ function uploadTest(hostName, bytesToUpload, numberOfStreams, timeout, threshold
 				}
 			},200)
 		}
-	}, 2000)
+	}, 3000)
 
 }
 /*************End upload test****************/

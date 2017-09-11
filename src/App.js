@@ -42,7 +42,11 @@ class App extends Component {
       cardEthernet: "",
       cardCpu: "",
       cardRam: "",
-      cardWifi: " "
+      cardWifi: " ",
+
+      dataPing: null,
+      dataUpload: null,
+      dataDownload: null
     }
 
     this.componentDidMount = this.componentDidMount.bind(this);
@@ -54,9 +58,11 @@ class App extends Component {
     this.displayMeasureView = this.displayMeasureView.bind(this);
     this.handleClick = this.handleClick.bind(this);
     this.handleMISTResults=this.handleMISTResults.bind(this);
+    this.handleWebSocketErrors=this.handleWebSocketErrors.bind(this);
+    this.resetMeasureResults=this.resetMeasureResults.bind(this);
   }
 
-  handleClick() {
+  resetMeasureResults(){
     this.setState({
       unitMeasure: "",
       gaugeColor: "#0275d8",
@@ -65,7 +71,10 @@ class App extends Component {
       uploadValue: 0,
       valore: 0,
     });
+  }
 
+  handleClick() {
+    this.resetMeasureResults();
     $('#mistButton').attr('disabled', 'disabled');
     var worker = new Worker(process.env.PUBLIC_URL + 'client.js');
     var startMISTMsg = {
@@ -105,6 +114,47 @@ class App extends Component {
 
   }
 
+  handleWebSocketErrors(){
+    //TODO: Fare il close del websocket e verificare che non venga eseguito del codice 'indesiderato' relativo all'event listener 'onclose'
+    this.setState({isNeMeSysRunning: false});
+    this.displayError(1234);
+    this.resetMeasureResults();
+
+    var ajax_getMISTSerial_settings = {
+      "async": true,
+      "url": "http://localhost:1235",  //TODO: Cambiarlo poi con /get_serial/?type=speedtest
+      "method": "GET",
+      "headers": {
+        "cache-control": "no-cache",
+      }
+    }
+    $.ajax(ajax_getMISTSerial_settings).done(function(response){
+      this.mistClientId=(JSON.parse(response)).serial;
+      console.log(this.mistClientId);
+      this.displayWaitView(this.mistClientId);
+    }.bind(this));
+
+    var ajax_getMISTServers_settings = {
+      "async": true,
+      "url": "http://localhost:1236",  //TODO: Cambiarlo poi con /get_servers/?type=speedtest
+      "method": "GET",
+      "headers": {
+        "cache-control": "no-cache",
+      }
+    }
+    $.ajax(ajax_getMISTServers_settings).done(function(response){
+      var responseObj=JSON.parse(response);
+      var arrayOfServers=[];
+      for(var i=0; i<responseObj.servers.length; i++){
+        arrayOfServers.push(responseObj.servers[i].ip);
+      }
+      console.log(arrayOfServers);
+      this.setState({
+        mistTestServers: arrayOfServers
+      });
+    }.bind(this));
+  }
+
   componentDidMount() {
     //var ws = new WebSocket('ws://localhost:8080'); // -> SERVER DI TEST
     var ws = new WebSocket('ws://localhost:54201/ws');
@@ -117,47 +167,10 @@ class App extends Component {
     }
 
     //In caso di errore viene eseguito MIST
-    ws.onerror = function() {
-      //TODO: Resettare gli URI dei grafici, i valori del gauge, quelli di ping, download e upload in caso di onerror
-      this.setState({isNeMeSysRunning: false});
-      this.displayError(1234);
-
-      var ajax_getMISTSerial_settings = {
-        "async": true,
-        "url": "http://localhost:1235",  //TODO: Cambiarlo poi con /get_serial/?type=speedtest
-        "method": "GET",
-        "headers": {
-          "cache-control": "no-cache",
-        }
-      }
-      $.ajax(ajax_getMISTSerial_settings).done(function(response){
-        this.mistClientId=(JSON.parse(response)).serial;
-        console.log(this.mistClientId);
-        this.displayWaitView(this.mistClientId);
-      }.bind(this));
-
-      var ajax_getMISTServers_settings = {
-        "async": true,
-        "url": "http://localhost:1236",  //TODO: Cambiarlo poi con /get_servers/?type=speedtest
-        "method": "GET",
-        "headers": {
-          "cache-control": "no-cache",
-        }
-      }
-      $.ajax(ajax_getMISTServers_settings).done(function(response){
-        var responseObj=JSON.parse(response);
-        var arrayOfServers=[];
-        for(var i=0; i<responseObj.servers.length; i++){
-          arrayOfServers.push(responseObj.servers[i].ip);
-        }
-        console.log(arrayOfServers);
-        this.setState({
-          mistTestServers: arrayOfServers
-        });
-      }.bind(this));
-
-
-    }.bind(this)
+    ws.onerror = function(event) {
+      console.log(event.code);
+      this.handleWebSocketErrors();
+    }.bind(this);
 
     ws.onmessage = function(message) {
       var msg = JSON.parse(message.data);
@@ -165,14 +178,13 @@ class App extends Component {
 
     }.bind(this)
 
-    /*  ws.onclose = function (event) {
-        /**
-         se la chiusura è stata causata da qualche errore
-
-        if (event.code != 1000) {
-            this.displayError(event.code);
-        }
-    }; */
+    ws.onclose = function (event) {
+      /*Se la chiusura del websocket è causata da un errore allora viene eseguito MIST*/
+      console.log(event.code);
+      if (event.code != 1000) {
+          this.handleWebSocketErrors();
+      }
+    }.bind(this);
   }
 
   readMessage(msg) {
@@ -486,11 +498,9 @@ class App extends Component {
 
     switch (test_type) {
       case "upload":
-        {
-          this.setState({gaugeColor: '#28a745'})
-          this.setState({hdr: "Test di upload in corso..."});
-          this.setState({unitMeasure: "Mb/s"});
-        }
+        this.setState({gaugeColor: '#28a745'})
+        this.setState({hdr: "Test di upload in corso..."});
+        this.setState({unitMeasure: "Mb/s"});
         break;
       case "download":
         {
@@ -538,13 +548,11 @@ class App extends Component {
                   <b>Nemesys non è al momento operativo oppure non è installato. </b>
                   Puoi effettuare una misurazione tramite Misurainternet Speedtest premendo sul tasto START. In alternativa <a href='/'>clicca qui</a> per riprendere le misurazioni con Nemesys.
                 </p>,
-            unitMeasure: "",
-            gaugeColor: "#0275d8",
-            pingValue: 0,
-            downloadValue: 0,
-            uploadValue: 0,
-            valore: 0,
+            dataPing: null,
+            dataUpload: null,
+            dataDownload: null
           });
+          this.resetMeasureResults();
           break;
       case 1235: //Errore nell'esecuzione del test di ping in MIST
           this.setState({
@@ -552,14 +560,9 @@ class App extends Component {
             par: <p>
                   <b>Errore nel test di ping. </b>
                   Puoi effettuare nuovamente la misurazione con MisuraInternet Speedtest cliccando sul tasto START. Qualora volessi riprendere ad effettuare le misurazioni con Nemesys, <a href='/'>clicca qui</a>
-                </p>,
-            unitMeasure: "",
-            gaugeColor: "#0275d8",
-            pingValue: 0,
-            downloadValue: 0,
-            uploadValue: 0,
-            valore: 0,
+                </p>
           });
+          this.resetMeasureResults();
           $("#mistButton").removeAttr("disabled");
           break;
       case 1236: //Errore nell'esecuzione del test di download in MIST
@@ -568,14 +571,9 @@ class App extends Component {
             par: <p>
                   <b>Errore nel test di download. </b>
                   Puoi effettuare nuovamente la misurazione con MisuraInternet Speedtest cliccando sul tasto START. Qualora volessi riprendere ad effettuare le misurazioni con Nemesys, <a href='/'>clicca qui</a>
-                </p>,
-            unitMeasure: "",
-            gaugeColor: "#0275d8",
-            pingValue: 0,
-            downloadValue: 0,
-            uploadValue: 0,
-            valore: 0,
+                </p>
           });
+          this.resetMeasureResults();
           $("#mistButton").removeAttr("disabled");
           break;
       case 1237: //Errore nell'esecuzione del test di upload in MIST
@@ -584,14 +582,9 @@ class App extends Component {
             par: <p>
                   <b>Errore nel test di upload.</b>
                   Puoi effettuare nuovamente la misurazione con MisuraInternet Speedtest cliccando sul tasto START. Qualora volessi riprendere ad effettuare le misurazioni con Nemesys, <a href='/'>clicca qui</a>
-                </p>,
-            unitMeasure: "",
-            gaugeColor: "#0275d8",
-            pingValue: 0,
-            downloadValue: 0,
-            uploadValue: 0,
-            valore: 0,
+                </p>
           });
+          this.resetMeasureResults();
           $("#mistButton").removeAttr("disabled");
           break;
       default:
