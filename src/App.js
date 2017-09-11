@@ -115,7 +115,6 @@ class App extends Component {
   }
 
   handleWebSocketErrors(){
-    //TODO: Fare il close del websocket e verificare che non venga eseguito del codice 'indesiderato' relativo all'event listener 'onclose'
     this.setState({isNeMeSysRunning: false});
     this.displayError(1234);
     this.resetMeasureResults();
@@ -165,12 +164,6 @@ class App extends Component {
       };
       this.send(JSON.stringify(req));
     }
-
-    //In caso di errore viene eseguito MIST
-    ws.onerror = function(event) {
-      console.log(event.code);
-      this.handleWebSocketErrors();
-    }.bind(this);
 
     ws.onmessage = function(message) {
       var msg = JSON.parse(message.data);

@@ -85,7 +85,9 @@ function pingCodeWrapper(arrayOfHostNames, times, maxTimeout, nextFunction){
 
 		//funzione di utilità per gestire errori, timeout oppure la terminazione del test di ping
 		var handleErrorsOrTimeoutsOrTestFinished= function(){
-			ws.close();
+			if(ws.readyState<3){ //se la connessione websocket non è stata chiusa
+				ws.close();
+			}
 			if(arrayOfHostNames.length===1){ //ho pingato l'ultimo server della lista di server passata come parametro alla funzione
 				if(nextFunction && speedTestGlobalVariables.server){
 					speedTestGlobalVariables.tests.push(measureResult);
@@ -103,7 +105,6 @@ function pingCodeWrapper(arrayOfHostNames, times, maxTimeout, nextFunction){
 					nextFunction();
 				}
 				else if(!speedTestGlobalVariables.server){
-					//Nessun server mi ha risposto e quindi non eseguo la prossima funziona e mando un messaggio di errore all'interfaccia. (TODO)
 					console.log('ERR: Impossibile pingare i server passati come parametro');
 
 					self.postMessage(JSON.stringify(
@@ -145,11 +146,13 @@ function pingCodeWrapper(arrayOfHostNames, times, maxTimeout, nextFunction){
 			sendPingMessage();
 		}
 
-		ws.onerror=function(){
-			console.log('ERR: test di ping fallito per ws.onerror!');
-			handleErrorsOrTimeoutsOrTestFinished();
+		ws.onclose=function(event){
+			if(event.code!=1000){ // chiusura imprevista della connessione websocket
+				console.log('ERR: ping test failed! Onclose event fired!');
+				handleErrorsOrTimeoutsOrTestFinished();
+			}
 		}
-		
+
 		ws.onmessage=function(){
 			if(timeoutEventFired){
 				return;
