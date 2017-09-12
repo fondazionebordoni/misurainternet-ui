@@ -51,7 +51,6 @@ class App extends Component {
 
     this.componentDidMount = this.componentDidMount.bind(this);
     this.updateTachometer = this.updateTachometer.bind(this);
-    this.displayPrequalificationValue=this.displayPrequalificationValue.bind(this);
     this.readMessage = this.readMessage.bind(this);
     this.displayTestN = this.displayTestN.bind(this);
     this.profilation = this.profilation.bind(this);
@@ -145,7 +144,7 @@ class App extends Component {
       var responseObj=JSON.parse(response);
       var arrayOfServers=[];
       for(var i=0; i<responseObj.servers.length; i++){
-        arrayOfServers.push(responseObj.servers[i].ip);
+        arrayOfServers.push((responseObj.servers[i].ip + ':' +  responseObj.servers[i].port));
       }
       console.log(arrayOfServers);
       this.setState({
@@ -202,7 +201,7 @@ class App extends Component {
         this.displayMeasureView(msg.content.test_type, msg.content.bw);
         break;
       case "tachometer":
-        this.updateTachometer(msg.content.value);
+        this.updateTachometer(msg.content.value, msg.content.message);
         break;
       case "profilation":
         this.profilation(msg.content.done);
@@ -212,9 +211,6 @@ class App extends Component {
         break;
       case "test":
         this.displayTestN(msg.content.n_test, msg.content.n_tot, msg.content.retry);
-        break;
-      case "prequalification": //Vale solo per MIST e si riferisce alla prequalifica che viene effettuata prima della misurazione vera e propria
-        this.displayPrequalificationValue(msg.content.value);
         break;
       case "speedtest": //MIST ha terminato di effettuare le misure
         this.handleMISTResults(msg);
@@ -291,18 +287,16 @@ class App extends Component {
     }
   }
 
-  updateTachometer(value) {
-    if(!this.state.isNeMeSysRunning){
-      this.setState({par: 'Misurazione in corso...'});
+  updateTachometer(value, message) {
+    if(!this.state.isNeMeSysRunning && message && (message.info || message.warning)){
+      if(message.warning){
+        this.setState({par: <p><b>Attenzione! </b>{message.warning}</p>});
+      }
+      else{
+        this.setState({par: <p>{message.info}</p>});
+      }
     }
     this.setState({valore: value.toFixed(2)});
-  }
-
-  displayPrequalificationValue(value){
-    this.setState({
-      par: 'Prequalifica in corso, attendere prego...',
-      valore: value.toFixed(2)
-    });
   }
 
   displayTestN(n_test, n_tot, retry) {
@@ -515,12 +509,12 @@ class App extends Component {
   }
 
   displayError(errorMsg) {
-    document.getElementById("titolo").innerHTML = "Nemesys - Errore";
-    this.setState({hdr: "Impossibile connettersi a Nemesys"});
 
     switch (errorMsg) {
       case 1006:
         {
+          document.getElementById("titolo").innerHTML = "Nemesys - Errore";
+          this.setState({hdr: "Impossibile connettersi a Nemesys"});
           this.setState({
             par: <p>
                 <b>Assicurati di aver scaricato ed installato Nemesys: una volta completata l&#039; installazione, potrai vedere l&#039; avanzamento delle tue misure su questa pagina.</b>
@@ -573,7 +567,7 @@ class App extends Component {
           this.setState({
             hdr: 'MisuraInternet Speedtest - Errore',
             par: <p>
-                  <b>Errore nel test di upload.</b>
+                  <b>Errore nel test di upload. </b>
                   Puoi effettuare nuovamente la misurazione con MisuraInternet Speedtest cliccando sul tasto START. Qualora volessi riprendere ad effettuare le misurazioni con Nemesys, <a href='/'>clicca qui</a>
                 </p>
           });

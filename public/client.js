@@ -44,6 +44,16 @@ function closeAllConnections(arrayOfXhrs){
 	}
 }
 
+function handleDownloadAndUploadErrors(firstInterval, secondInterval, arrayOfXhrs){
+	closeAllConnections(arrayOfXhrs);
+	if(firstInterval){
+		clearInterval(firstInterval);
+	}
+	if(secondInterval){
+		clearInterval(secondInterval);
+	}
+}
+
 function generateTestData(numberOfMB){
 	var array=[];
 	var buffer=new ArrayBuffer(1048576);
@@ -62,19 +72,23 @@ function generateTestData(numberOfMB){
 
 /**************Ping code wrapper*************/
 function pingCodeWrapper(arrayOfHostNames, times, maxTimeout, nextFunction){
-	var measureResult={
-		type: 'ping',
-		start: null,
-		byte: 0,
-		value: [],
-		avgValue: null // è ridondante però forse rende più comprensibile il codice del ping
-	};
+	var latencyAvgValue;
+	var measureResult;
 
 	/*************Ping multiple servers***************/
 	function pingTest(arrayOfHostNames, times, maxTimeout, nextFunction){
+		var currentMeasureResult=[];
+		for(var i=0; i<times; i++){
+			var pingObj={
+				type: 'ping',
+				start: null,
+				byte: 0,
+				value: null
+			};
+			currentMeasureResult.push(pingObj);
+		}
 		var hostName=arrayOfHostNames[0];
 		console.log('INFO: Il server attualmente pingato è ' + hostName);
-		var startISOTime;
 		var firstPingDone=false;
 		var count=0;
 		var totalTime=0;
@@ -90,18 +104,17 @@ function pingCodeWrapper(arrayOfHostNames, times, maxTimeout, nextFunction){
 			}
 			if(arrayOfHostNames.length===1){ //ho pingato l'ultimo server della lista di server passata come parametro alla funzione
 				if(nextFunction && speedTestGlobalVariables.server){
-					speedTestGlobalVariables.tests.push(measureResult);
+					speedTestGlobalVariables.tests= speedTestGlobalVariables.tests.concat(measureResult);
 					console.log(speedTestGlobalVariables);
 					self.postMessage(JSON.stringify(
 						{
 							type: 'result',
 							content: {
 								test_type: 'ping',
-								result: measureResult.avgValue
+								result: latencyAvgValue
 							}
 						}
 					));
-
 					nextFunction();
 				}
 				else if(!speedTestGlobalVariables.server){
@@ -131,9 +144,6 @@ function pingCodeWrapper(arrayOfHostNames, times, maxTimeout, nextFunction){
 		//altra funzione di utilità per mandare, tramite websocket, delle stringe vuote
 		var sendPingMessage= function(){
 			t0=Date.now();
-			if(!firstPingDone){ //devo ancora inviare il primo ping
-				startISOTime= (new Date(t0)).toISOString();
-			}
 			ws.send('');
 			timeout=setTimeout(function(){
 				timeoutEventFired=true;
@@ -172,7 +182,8 @@ function pingCodeWrapper(arrayOfHostNames, times, maxTimeout, nextFunction){
 
 			else{
 				var latency= tf - t0;
-				measureResult.value[count]=latency;
+				currentMeasureResult[count].start=(new Date(t0)).toISOString();
+				currentMeasureResult[count].value=latency;
 				count++;
 				totalTime+=latency;
 
@@ -190,25 +201,27 @@ function pingCodeWrapper(arrayOfHostNames, times, maxTimeout, nextFunction){
 					console.log('___________________________________________________');
 					console.log('___________________________________________________');
 
-					if(speedTestGlobalVariables.server===null && measureResult.avgValue===null){ //primo server che viene pingato
+					if(!speedTestGlobalVariables.server){ //primo server che viene pingato
 						console.log('INFO: Primo server ad essere pingato!');
 						speedTestGlobalVariables.server=hostName;
-						measureResult.avgValue=pingAvgValue;
-						measureResult.start=startISOTime;
+						latencyAvgValue=pingAvgValue;
+						measureResult=currentMeasureResult;
 						console.log('INFO: speedTestGlobalVariables.server è ' + speedTestGlobalVariables.server);
-						console.log('INFO: measureResult.avgValue è ' + measureResult.avgValue);
-						console.log('INFO: measureResult.start è ' + measureResult.start);
+						console.log('INFO: latencyAvgValue è ' + latencyAvgValue);
+						console.log('INFO: measureResult è (segue):');
+						console.log(measureResult);
 
 					}
 					else{
-						if(measureResult.avgValue && pingAvgValue<measureResult.avgValue){
+						if(latencyAvgValue && pingAvgValue<latencyAvgValue){
 							console.log('INFO: Il valore di ping calcolato è inferiore a quello attuale!');
 							speedTestGlobalVariables.server=hostName;
-							measureResult.avgValue=pingAvgValue;
-							measureResult.start=startISOTime;
+							latencyAvgValue=pingAvgValue;
+							measureResult=currentMeasureResult;
 							console.log('INFO: speedTestGlobalVariables.server è ' + speedTestGlobalVariables.server);
-							console.log('INFO: measureResult.avgValue è ' + measureResult.avgValue);
-							console.log('INFO: measureResult.start è ' + measureResult.start);
+							console.log('INFO: latencyAvgValue è ' + latencyAvgValue);
+							console.log('INFO: measureResult è (segue):');
+							console.log(measureResult);
 						}
 						//TODO: Eliminare poi il ramo else
 						else{
@@ -290,14 +303,7 @@ function downloadTest(hostName, bytesToDownload, numberOfStreams, timeout, thres
 
 			xhrArray[index].onerror=function(event){
 				console.log('ERR: Onerror event fired at stream ' + index);
-				closeAllConnections(xhrArray);
-				if(firstInterval){
-					clearInterval(firstInterval);
-				}
-				if(secondInterval){
-					clearInterval(secondInterval);
-				}
-
+				handleDownloadAndUploadErrors(firstInterval,secondInterval,xhrArray);
 				console.log('ERR: Fallito test di download');
 
 				self.postMessage(JSON.stringify(
@@ -347,9 +353,12 @@ function downloadTest(hostName, bytesToDownload, numberOfStreams, timeout, thres
 
 		self.postMessage(JSON.stringify(
 			{
-				type: 'prequalification',
+				type: 'tachometer',
 				content: {
-					value: instSpeedInMbs
+					value: instSpeedInMbs,
+					message: {
+						info: 'Prequalifica in corso. Attendere prego ...'
+					}
 				}
 			}
 		));
@@ -358,7 +367,11 @@ function downloadTest(hostName, bytesToDownload, numberOfStreams, timeout, thres
 		previouslyDownloadedBytes= currentlyDownloadedBytes;
 		prevInstSpeedInMbs=instSpeedInMbs;
 
-		if(percentDiff<threshold){
+		if(percentDiff<threshold || (tf - testStartTime >= 10000)){
+			var testWarning= false;
+			if(tf - testStartTime >= 10000){
+				testWarning=true;
+			}
 			console.log('___________________________________________________');
 			console.log('INFO: Valore percentuale minore della soglia!');
 			var measureStartTime = Date.now();
@@ -371,14 +384,32 @@ function downloadTest(hostName, bytesToDownload, numberOfStreams, timeout, thres
 				var downloadedBytesAtThisTime=downloadedBytes;
 				var downloadSpeedInMbs=(downloadedBytesAtThisTime*8/1000)/downloadTime;
 
-				self.postMessage(JSON.stringify(
-					{
-						type: 'tachometer',
-						content: {
-							value: downloadSpeedInMbs
+				if(testWarning){
+					self.postMessage(JSON.stringify(
+						{
+							type: 'tachometer',
+							content: {
+								value: downloadSpeedInMbs,
+								message: {
+									warning: 'La tua connessione non risulta essere particolarmente stabile. Pertanto il risultato del test di upload potrebbe non essere del tutto accurato'
+								}
+							}
 						}
-					}
-				));
+					));
+				}
+				else{
+					self.postMessage(JSON.stringify(
+						{
+							type: 'tachometer',
+							content: {
+								value: downloadSpeedInMbs,
+								message: {
+									info: 'Misurazione in corso...'
+								}
+							}
+						}
+					));
+				}
 
 				console.log('INFO: La velocita di download(Mbs) è pari a ' + downloadSpeedInMbs);
 
@@ -386,10 +417,11 @@ function downloadTest(hostName, bytesToDownload, numberOfStreams, timeout, thres
 					closeAllConnections(xhrArray);
 					clearInterval(secondInterval);
 					testDone=true;
-					measureResult.byte=downloadedBytesAtThisTime;
-					measureResult.value=downloadSpeedInMbs*1000;
-					speedTestGlobalVariables.tests.push(measureResult);
 					var totalTime= (time - testStartTime)/1000.0;
+					var measureTime=(time - measureStartTime)/1000;
+					measureResult.byte=downloadedBytesAtThisTime;
+					measureResult.value=measureTime;
+					speedTestGlobalVariables.tests.push(measureResult);
 
 					self.postMessage(JSON.stringify(
 						{
@@ -403,7 +435,7 @@ function downloadTest(hostName, bytesToDownload, numberOfStreams, timeout, thres
 
 					console.log('___________________________________________________');
 					console.log('END: Tempo scaduto!');
-					console.log('END : La misurazione è durata(s) ' + (time - measureStartTime)/1000);
+					console.log('END : La misurazione è durata ' + measureTime + ' secondi');
 					console.log('END: Per fare questa misurazione ci sono voluti ' + totalTime +' secondi');
 					console.log('___________________________________________________');
 					console.log('___________________________________________________');
@@ -469,14 +501,7 @@ function uploadTest(hostName, bytesToUpload, numberOfStreams, timeout, threshold
 
 			xhrArray[index].onerror=function(event){
 				console.log('ERR: Onerror event fired at stream ' + index);
-				closeAllConnections(xhrArray);
-				if(firstInterval){
-					clearInterval(firstInterval);
-				}
-				if(secondInterval){
-					clearInterval(secondInterval);
-				}
-
+				handleDownloadAndUploadErrors(firstInterval,secondInterval,xhrArray);
 				console.log('ERR: Fallito test di upload');
 
 				self.postMessage(JSON.stringify(
@@ -520,9 +545,12 @@ function uploadTest(hostName, bytesToUpload, numberOfStreams, timeout, threshold
 
 		self.postMessage(JSON.stringify(
 			{
-				type: 'prequalification',
+				type: 'tachometer',
 				content: {
-					value: instSpeedInMbs
+					value: instSpeedInMbs,
+					message: {
+						info: 'Prequalifica in corso. Attendere prego...'
+					}
 				}
 			}
 		));
@@ -531,7 +559,12 @@ function uploadTest(hostName, bytesToUpload, numberOfStreams, timeout, threshold
 		previouslyUploadedBytes= currentlyUploadedBytes;
 		prevInstSpeedInMbs=instSpeedInMbs;
 
-		if(percentDiff<threshold){
+		if(percentDiff<threshold || (tf - testStartTime >= 10000)){
+			var testWarning=false;
+
+			if(tf - testStartTime >= 10000){
+				testWarning=true;
+			}
 			console.log('___________________________________________________');
 			console.log('INFO: Valore percentuale minore della soglia!');
 			var measureStartTime = Date.now();
@@ -544,14 +577,34 @@ function uploadTest(hostName, bytesToUpload, numberOfStreams, timeout, threshold
 				var uploadedBytesAtThisTime=uploadedBytes;
 				var uploadSpeedInMbs=(uploadedBytesAtThisTime*8/1000)/uploadTime;
 
-				self.postMessage(JSON.stringify(
-					{
-						type: 'tachometer',
-						content: {
-							value: uploadSpeedInMbs
+				if(testWarning){
+					self.postMessage(JSON.stringify(
+						{
+							type: 'tachometer',
+							content: {
+								value: uploadSpeedInMbs,
+								message: {
+									warning: 'La tua connessione non risulta essere particolarmente stabile. Pertanto il risultato del test di upload potrebbe non essere del tutto accurato'
+								}
+							}
 						}
-					}
-				));
+					));
+				}
+
+				else{
+					self.postMessage(JSON.stringify(
+						{
+							type: 'tachometer',
+							content: {
+								value: uploadSpeedInMbs,
+								message: {
+									info: 'Misurazione in corso...'
+								}
+							}
+						}
+					));
+				}
+
 
 				console.log('INFO: La velocita di upload(Mbs) è pari a ' + uploadSpeedInMbs);
 
@@ -559,10 +612,11 @@ function uploadTest(hostName, bytesToUpload, numberOfStreams, timeout, threshold
 					closeAllConnections(xhrArray);
 					clearInterval(secondInterval);
 					testDone=true;
-					measureResult.byte=uploadedBytesAtThisTime;
-					measureResult.value=uploadSpeedInMbs*1000;
-					speedTestGlobalVariables.tests.push(measureResult);
+					var measureTime=(time - measureStartTime)/1000;
 					var totalTime= (time - testStartTime)/1000.0;
+					measureResult.byte=uploadedBytesAtThisTime;
+					measureResult.value=measureTime;
+					speedTestGlobalVariables.tests.push(measureResult);
 
 					self.postMessage(JSON.stringify(
 						{
@@ -576,7 +630,7 @@ function uploadTest(hostName, bytesToUpload, numberOfStreams, timeout, threshold
 
 					console.log('___________________________________________________');
 					console.log('END: Tempo scaduto!');
-					console.log('END : La misurazione è durata(s) ' + (time - measureStartTime)/1000);
+					console.log('END : La misurazione è durata ' + measureTime + ' secondi');
 					console.log('END: Per fare questa misurazione ci sono voluti ' + totalTime +' secondi');
 					console.log('___________________________________________________');
 					console.log('___________________________________________________');

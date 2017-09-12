@@ -10,12 +10,14 @@ var server = http.createServer(function (req, res) {
     {
       servers : [
         {
-          ip : "34.210.59.77:8080",
-          srvname : "testServer1"
+          ip : "34.210.59.77",
+          srvname : "testServer1",
+          port: '8080'
         },
         {
-          ip : "34.210.59.77:8080",
-          srvname : "testServer2"
+          ip : "34.210.59.77",
+          srvname : "testServer2",
+          port: '8080'
         }
       ]
     };
