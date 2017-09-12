@@ -134,17 +134,16 @@ class App extends Component {
 
     var ajax_getMISTServers_settings = {
       "async": true,
-      "url": "http://localhost:1236",  //TODO: Cambiarlo poi con /get_servers/?type=speedtest
+      "url": "https://www.misurainternet.it/get_servers/?type=speedtest",  //TODO: Cambiarlo poi con https://www.misurainternet.it/get_servers/?type=speedtest
       "method": "GET",
       "headers": {
         "cache-control": "no-cache",
       }
     }
     $.ajax(ajax_getMISTServers_settings).done(function(response){
-      var responseObj=JSON.parse(response);
       var arrayOfServers=[];
-      for(var i=0; i<responseObj.servers.length; i++){
-        arrayOfServers.push((responseObj.servers[i].ip + ':' +  responseObj.servers[i].port));
+      for(var i=0; i<response.servers.length; i++){
+        arrayOfServers.push((response.servers[i].ip + ':' +  response.servers[i].port));
       }
       console.log(arrayOfServers);
       this.setState({
@@ -568,6 +567,17 @@ class App extends Component {
             hdr: 'MisuraInternet Speedtest - Errore',
             par: <p>
                   <b>Errore nel test di upload. </b>
+                  Puoi effettuare nuovamente la misurazione con MisuraInternet Speedtest cliccando sul tasto START. Qualora volessi riprendere ad effettuare le misurazioni con Nemesys, <a href='/'>clicca qui</a>
+                </p>
+          });
+          this.resetMeasureResults();
+          $("#mistButton").removeAttr("disabled");
+          break;
+      case 1238: //Errore che viene notificato quando, durante il test di download e upload, la prequalifica restituisce sempre zero (assenza di connessione)
+          this.setState({
+            hdr: 'MisuraInternet Speedtest - Errore',
+            par: <p>
+                  <b>Errore! Assenza di connessione ad internet. Controlla la tua connessione internet. </b>
                   Puoi effettuare nuovamente la misurazione con MisuraInternet Speedtest cliccando sul tasto START. Qualora volessi riprendere ad effettuare le misurazioni con Nemesys, <a href='/'>clicca qui</a>
                 </p>
           });

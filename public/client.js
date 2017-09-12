@@ -33,14 +33,34 @@ function terminateWorker(){
 
 function closeAllConnections(arrayOfXhrs){
 	for(var i=0;i<arrayOfXhrs.length; i++){
-		arrayOfXhrs[i].onprogress = null;
-		arrayOfXhrs[i].onload = null;
-		arrayOfXhrs[i].onerror = null;
-		arrayOfXhrs[i].upload.onprogress = null;
-		arrayOfXhrs[i].upload.onload = null;
-		arrayOfXhrs[i].upload.onerror = null
-		arrayOfXhrs[i].abort();
-		delete (arrayOfXhrs[i]);
+		try{
+			arrayOfXhrs[i].onprogress = null;
+			arrayOfXhrs[i].onload = null;
+			arrayOfXhrs[i].onerror = null;
+		}
+		catch(e){
+			console.log(e);
+		}
+		try{
+			arrayOfXhrs[i].upload.onprogress = null;
+			arrayOfXhrs[i].upload.onload = null;
+			arrayOfXhrs[i].upload.onerror = null;
+		}
+		catch(e){
+			console.log(e);
+		}
+		try{
+			arrayOfXhrs[i].abort();
+		}
+		catch(e){
+			console.log(e);
+		}
+		try{
+			delete (arrayOfXhrs[i]);
+		}
+		catch(e){
+			console.log(e);
+		}
 	}
 }
 
@@ -367,9 +387,21 @@ function downloadTest(hostName, bytesToDownload, numberOfStreams, timeout, thres
 		previouslyDownloadedBytes= currentlyDownloadedBytes;
 		prevInstSpeedInMbs=instSpeedInMbs;
 
-		if(percentDiff<threshold || (tf - testStartTime >= 10000)){
+		if(percentDiff<threshold || (tf - testStartTime > 12000)){
 			var testWarning= false;
-			if(tf - testStartTime >= 10000){
+			if(tf - testStartTime > 12000){
+				if(instSpeedInMbs===0){
+					handleDownloadAndUploadErrors(firstInterval,secondInterval,xhrArray);
+					console.log('ERR: Assenza di connessione internet');
+
+					self.postMessage(JSON.stringify(
+						{
+							type: 'error',
+							content: 1238
+						}
+					));
+					return;
+				}
 				testWarning=true;
 			}
 			console.log('___________________________________________________');
@@ -563,6 +595,18 @@ function uploadTest(hostName, bytesToUpload, numberOfStreams, timeout, threshold
 			var testWarning=false;
 
 			if(tf - testStartTime >= 10000){
+				if(instSpeedInMbs===0){
+					handleDownloadAndUploadErrors(firstInterval,secondInterval,xhrArray);
+					console.log('ERR: Assenza di connessione internet');
+
+					self.postMessage(JSON.stringify(
+						{
+							type: 'error',
+							content: 1238
+						}
+					));
+					return;
+				}
 				testWarning=true;
 			}
 			console.log('___________________________________________________');
