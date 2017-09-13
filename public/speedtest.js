@@ -680,7 +680,7 @@ function uploadTest(hostNameAndPort, bytesToUpload, numberOfStreams, timeout, th
 /*************End upload test****************/
 
 /*************Speedtest****************/
-function startSpeedtest(arrayOfServers, numOfPings, numOfMB, numOfStreams){
+function startSpeedtest(arrayOfServers){
 	measureResultsContainer.start= (new Date()).toISOString();
 	var timesToPing=4;
 	var pingMaxTimeout=1000; //ms
@@ -693,23 +693,6 @@ function startSpeedtest(arrayOfServers, numOfPings, numOfMB, numOfStreams){
 	var downloadTestThreshold=0.10;
 	var uploadTestThreshold=0.10;
 
-	if(numOfPings){
-		timesToPing=numOfPings;
-	}
-	if(numOfMB){
-		bytesToDownload=numOfMB*1048576;
-		bytesToUpload=numOfMB*1048576;
-	}
-	if(numOfStreams){
-		numberOfDownloadStreams=numOfStreams;
-		numberOfUploadStreams=numOfStreams;
-	}
-
-	console.log('INFO: timesToPing è pari a  ' + timesToPing);
-	console.log('INFO: numberOfDownloadStreams è pari a  ' + numberOfDownloadStreams);
-	console.log('INFO: bytesToDownload è pari a  ' + bytesToDownload);
-	console.log('INFO: numberOfUploadStreams è pari a  ' + numberOfUploadStreams);
-	console.log('INFO: bytesToUpload è pari a  ' + bytesToUpload);
 	console.log('INFO: Inizia lo speedtest!');
 
 	pingCodeWrapper(arrayOfServers, timesToPing, pingMaxTimeout,

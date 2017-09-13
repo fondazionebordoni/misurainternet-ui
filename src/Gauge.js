@@ -1,3 +1,10 @@
+/*
+	This code is derived from: Gauge.js by Tim de Koning
+	Licensed under the MIT License,
+	Original version:
+		-> https://github.com/Reggino/react-svg-gauge/blob/master/src/Gauge.js
+*/
+
 import React, {Component} from 'react';
 
 export default class Gauge extends Component {
