@@ -11,7 +11,7 @@ class ContenitoreValoriMisuraCorrente extends React.Component {
           <ValoreMisuraCorrente icon="fa-cloud-download" header="Download" value={this.props.downloadValue} unit="Mb/s"/>
           <ValoreMisuraCorrente icon="fa-cloud-upload" header="Upload" value={this.props.uploadValue} unit="Mb/s"/>
         </div>
-        <hr/>
+        <hr className="hidden-sm-down" />
       </div>
     )
 

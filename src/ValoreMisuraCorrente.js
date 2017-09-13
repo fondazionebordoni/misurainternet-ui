@@ -4,12 +4,12 @@ class ValoreMisuraCorrente extends React.Component {
   render() {
     return (
       <div className="col-sm-4">
-        <p className="text-xs-center">
+        <h5 className="text-xs-center mb-1">
           <i className={"fa " + this.props.icon} style={{
             marginRight: 7
           }} aria-hidden="true"></i>
           {this.props.header}
-        </p>
+        </h5>
         <h1 style={{
           fontWeight: "lighter"
         }}>
@@ -20,6 +20,7 @@ class ValoreMisuraCorrente extends React.Component {
             {" " + this.props.unit}
           </small>
         </h1>
+        <hr className="hidden-sm-up" />
       </div>
     );
   }
