@@ -75,7 +75,7 @@ class App extends Component {
   handleClick() {
     this.resetMeasureResults();
     $('#mistButton').attr('disabled', 'disabled');
-    var worker = new Worker(process.env.PUBLIC_URL + 'client.js');
+    var worker = new Worker(process.env.PUBLIC_URL + 'speedtest.js');
     var startMISTMsg = {
       request: 'startMeasure',
       servers: this.state.mistTestServers
@@ -88,13 +88,13 @@ class App extends Component {
   }
 
   handleMISTResults(measureResults){
-    console.log(measureResults);
+    measureResults={measure: measureResults};
     if(this.mistClientId && this.mistClientId.length>0){
-      measureResults.serial=this.mistClientId;
+      measureResults.measure.serial=this.mistClientId;
       var jsonResultData=JSON.stringify(measureResults);
       var ajax_sendMISTMeasures_settings = {
         "async": true,
-        "url": "http://localhost:1234",  //TODO: Cambiarlo poi con /set_measures/
+        "url": "https://www.misurainternet.it/set_measures/?type=speedtest",
         "method": "POST",
         "headers": {
           "cache-control": "no-cache",
@@ -102,14 +102,10 @@ class App extends Component {
         },
         "data": jsonResultData,
       }
-      $.ajax(ajax_sendMISTMeasures_settings).done(function(response){
-        console.log(response);
-        this.displayEndView();
-      }.bind(this));
+      $.ajax(ajax_sendMISTMeasures_settings);
     }
-    else{
-      this.displayEndView();
-    }
+    this.displayEndView();
+    console.log(measureResults);  //TODO: Da eliminare
 
   }
 
@@ -120,21 +116,22 @@ class App extends Component {
 
     var ajax_getMISTSerial_settings = {
       "async": true,
-      "url": "http://localhost:1235",  //TODO: Cambiarlo poi con /get_serial/?type=speedtest
+      "crossDomain": true,
+      "url": "https://www.misurainternet.it/get_serial/?type=speedtest",
       "method": "GET",
       "headers": {
-        "cache-control": "no-cache",
+      "cache-control": "no-cache"
       }
     }
     $.ajax(ajax_getMISTSerial_settings).done(function(response){
-      this.mistClientId=(JSON.parse(response)).serial;
+      this.mistClientId=response.serial;
       console.log(this.mistClientId);
       this.displayWaitView(this.mistClientId);
     }.bind(this));
 
     var ajax_getMISTServers_settings = {
       "async": true,
-      "url": "https://www.misurainternet.it/get_servers/?type=speedtest",  //TODO: Cambiarlo poi con https://www.misurainternet.it/get_servers/?type=speedtest
+      "url": "https://www.misurainternet.it/get_servers/?type=speedtest",
       "method": "GET",
       "headers": {
         "cache-control": "no-cache",
