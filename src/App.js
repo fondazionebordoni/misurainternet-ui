@@ -15,7 +15,7 @@ var client_id = null;
 class App extends Component {
   constructor(props) {
     super(props);
-    this.mistClientId;
+    this.mistClientId=null;
     this.state = {
       mistTestServers: null,
       licenceInfo: " ",
@@ -147,6 +147,7 @@ class App extends Component {
         mistTestServers: arrayOfServers
       });
     }.bind(this));
+
   }
 
   componentDidMount() {
@@ -169,7 +170,7 @@ class App extends Component {
     ws.onclose = function (event) {
       /*Se la chiusura del websocket è causata da un errore allora viene eseguito MIST*/
       console.log(event.code);
-      if (event.code != 1000) {
+      if (event.code !== 1000) {
           this.handleWebSocketErrors();
       }
     }.bind(this);

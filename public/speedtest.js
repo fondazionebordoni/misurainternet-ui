@@ -163,7 +163,15 @@ function pingCodeWrapper(arrayOfHostNamesAndPorts, times, maxTimeout, nextFuncti
 			},maxTimeout);
 		}// end sendPingMessage
 
+		var websocketConnectionFailedTimeout=setTimeout(function(){
+			if(ws.readyState===0){  //Il websocket si trova ancora in stato connecting e non è stata ancora instaurata la connessione
+				console.log('INFO: La connessione non è stata ancora aperta, pertanto verrà chiusa forzatamente');
+				ws.close();  //chiamare ws.close() quando non è stata ancora aperta la connessione causa una chiusura del websocket con event code = 1006. Questa cosa implica la chiamata dell'event handler onclose che a sua volta chiamerà handleErrorsOrTimeoutsOrTestFinished
+			}
+		},2000);
+
 		ws.onopen=function(){
+			clearTimeout(websocketConnectionFailedTimeout);
 			sendPingMessage();
 		}
 
