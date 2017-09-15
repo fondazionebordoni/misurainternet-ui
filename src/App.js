@@ -82,7 +82,6 @@ class App extends Component {
     };
     worker.postMessage(JSON.stringify(startMISTMsg));
     worker.onmessage = function(message) {
-      console.log(message.data);
       this.readMessage(JSON.parse(message.data));
     }.bind(this)
   }
@@ -105,8 +104,6 @@ class App extends Component {
       $.ajax(ajax_sendMISTMeasures_settings);
     }
     this.displayEndView();
-    console.log(measureResults);  //TODO: Da eliminare
-
   }
 
   handleWebSocketErrors(){
@@ -125,7 +122,6 @@ class App extends Component {
     }
     $.ajax(ajax_getMISTSerial_settings).done(function(response){
       this.mistClientId=response.serial;
-      console.log(this.mistClientId);
       this.displayWaitView(this.mistClientId);
     }.bind(this));
 
@@ -142,7 +138,6 @@ class App extends Component {
       for(var i=0; i<response.servers.length; i++){
         arrayOfServers.push((response.servers[i].ip + ':' +  response.servers[i].port));
       }
-      console.log(arrayOfServers);
       this.setState({
         mistTestServers: arrayOfServers
       });
@@ -169,7 +164,6 @@ class App extends Component {
 
     ws.onclose = function (event) {
       /*Se la chiusura del websocket è causata da un errore allora viene eseguito MIST*/
-      console.log(event.code);
       if (event.code !== 1000) {
           this.handleWebSocketErrors();
       }
@@ -444,12 +438,10 @@ class App extends Component {
         }
 
         $.ajax(settingsNumMeasures).done(function(response) {
-          console.log(response);
           this.setState({misCorrenti: response.numMeasures});
         }.bind(this));
 
         $.ajax(settingsLicenceInfo).done(function(response) {
-          console.log(response);
           this.setState({licenceInfo: response.licenseInfo});
         }.bind(this));
 
