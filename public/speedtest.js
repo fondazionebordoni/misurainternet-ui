@@ -246,6 +246,7 @@ function downloadTest(hostNameAndPort, bytesToDownload, numberOfStreams, timeout
 		byte: null,
 		value: null
 	};
+	var agvnn=0;
 
 	self.postMessage(JSON.stringify(
 		{
@@ -257,7 +258,7 @@ function downloadTest(hostNameAndPort, bytesToDownload, numberOfStreams, timeout
 	));
 
 	/*****download stream function*******/
-	var downloadStream= function(index,delay) {
+	var downloadStream= function(index,delay,host) {
 		setTimeout(function(){
 
 			var prevLoadedBytes=0;
@@ -272,6 +273,16 @@ function downloadTest(hostNameAndPort, bytesToDownload, numberOfStreams, timeout
 				var loadedBytes= event.loaded <= 0 ? 0 : (event.loaded - prevLoadedBytes);  //può accadere che event.loaded sia minore o uguale a zero?
 				downloadedBytes+=loadedBytes;
 				prevLoadedBytes=event.loaded;
+				agvnn = loadedBytes;
+				//console.log(index + ' progress');
+			}
+			
+			xhrArray[index].onloadstart=function(event){
+				//console.log(index + ' start');
+			}
+			
+			xhrArray[index].onabort=function(event){
+				//console.log(index + ' abort');
 			}
 
 			xhrArray[index].onerror=function(event){
@@ -283,11 +294,13 @@ function downloadTest(hostNameAndPort, bytesToDownload, numberOfStreams, timeout
 						content: 1236
 					}
 				));
+				//console.log(index + ' error');
 			}
 
 			xhrArray[index].onload=function(event){
 				xhrArray[index].abort();
-				downloadStream(index,0);
+				//console.log(index + ' load');
+				downloadStream(index,0,host);
 			}
 
 			var req={
@@ -296,15 +309,24 @@ function downloadTest(hostNameAndPort, bytesToDownload, numberOfStreams, timeout
 			};
 
 			var jsonReq=JSON.stringify(req);
-			var url = 'http://' + hostNameAndPort + '?r=' + Math.random()+ "&data=" + encodeURIComponent(jsonReq);
+			var url = 'http://' + host + '?r=' + Math.random()+ "&data=" + encodeURIComponent(jsonReq);
 			xhrArray[index].open('GET',url);
 			xhrArray[index].send();
 		},delay);
 	}
 	/*****end download stream function*******/
 
+	var j=0;
+	var k=0;
+	var hosts=[hostNameAndPort,"192.168.1.180:60101","192.168.1.180:60102","192.168.1.180:60103","192.168.1.180:60104","192.168.1.180:60105","192.168.1.180:60106","192.168.1.180:60107","192.168.1.180:60108","192.168.1.180:60109"];
 	for(var i=0;i<numberOfStreams;i++){
-		downloadStream(i,i*100);
+		if(j<6)
+			j++;
+		else {
+			k++;
+			j=1;
+		}
+		downloadStream(i,i*100,hosts[k]);
 	}
 
 	firstInterval = setInterval(function () {
@@ -352,6 +374,7 @@ function downloadTest(hostNameAndPort, bytesToDownload, numberOfStreams, timeout
 			clearInterval(firstInterval);
 
 			secondInterval= setInterval(function(){
+				//console.log(downloadedBytes);
 				var time= Date.now();
 				var downloadTime= time - measureStartTime;
 				var downloadedBytesAtThisTime=downloadedBytes;
@@ -446,7 +469,7 @@ function uploadTest(hostNameAndPort, bytesToUpload, numberOfStreams, timeout, th
 	));
 
 	/***************upload stream*************/
-	function uploadStream(index,delay) {
+	function uploadStream(index,delay,host) {
 		setTimeout(function(){
 
 			var prevUploadedBytes=0;
@@ -476,18 +499,27 @@ function uploadTest(hostNameAndPort, bytesToUpload, numberOfStreams, timeout, th
 
 			xhrArray[index].upload.onload=function(event){
 				xhrArray[index].abort();
-				uploadStream(index,0);
+				uploadStream(index,0,host);
 			}
 
-			var url = 'http://' + hostNameAndPort + '?r=' + Math.random();
+			var url = 'http://' + host + '?r=' + Math.random();
 			xhrArray[index].open('POST',url);
 			xhrArray[index].send(testData);
 		},delay);
 	}
 	/***************end upload stream *************/
 
+	var j=0;
+	var k=0;
+	var hosts=[hostNameAndPort,"192.168.1.180:60101","192.168.1.180:60102","192.168.1.180:60103","192.168.1.180:60104","192.168.1.180:60105","192.168.1.180:60106","192.168.1.180:60107","192.168.1.180:60108","192.168.1.180:60109"];
 	for(var i=0;i<numberOfStreams;i++){
-		uploadStream(i,i*100);
+		if(j<6)
+			j++;
+		else {
+			k++;
+			j=1;
+		}
+		uploadStream(i,i*100,hosts[k]);
 	}
 
 	firstInterval = setInterval(function () {
@@ -606,10 +638,10 @@ function startSpeedtest(arrayOfServers){
 	measureResultsContainer.start= (new Date()).toISOString();
 	var timesToPing=4;
 	var pingMaxTimeout=1000; //ms
-	var bytesToDownload=52428800;  //50MB
+	var bytesToDownload=5242880;  //50MB
 	var bytesToUpload=52428800;    //50MB
-	var numberOfDownloadStreams=6;
-	var numberOfUploadStreams=6;
+	var numberOfDownloadStreams=60;
+	var numberOfUploadStreams=30;
 	var downloadTestTimeout=10000; //ms
 	var uploadTestTimeout=10000; //ms
 	var downloadTestThreshold=0.10;

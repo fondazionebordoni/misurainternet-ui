@@ -59,12 +59,14 @@ var arrayOfMessages=([
 
 
 wss = new WebSocketServer({port: 8080});
+console.log('server ok');
 wss.on('connection', function(ws) {
     ws.on('message', function(message) {
       console.log('messaggio ricevuto');
       for(let i=0; i<arrayOfMessages.length; i++){
         setTimeout(function(){
           ws.send(JSON.stringify(arrayOfMessages[i]));
+          console.log('server ok');
         }, 500*(i+1))
       }
     });

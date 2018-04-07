@@ -11,13 +11,15 @@ import $ from 'jquery';
 var res = [];
 var listelements = [];
 var client_id = null;
+var count = 0;  //Aggiunta mia
+var stringResult = ""; //Aggiunta mia
 
 class App extends Component {
   constructor(props) {
     super(props);
     this.mistClientId=null;
     this.state = {
-      mistTestServers: null,
+      mistTestServers: [],
       licenceInfo: " ",
       isNeMeSysRunning: true,
       mostra: true,
@@ -78,7 +80,8 @@ class App extends Component {
     var worker = new Worker(process.env.PUBLIC_URL + 'speedtest.js');
     var startMISTMsg = {
       request: 'startMeasure',
-      servers: this.state.mistTestServers
+      //servers: this.state.mistTestServers
+	  servers: ["192.168.1.180:60100"]
     };
     worker.postMessage(JSON.stringify(startMISTMsg));
     worker.onmessage = function(message) {
@@ -103,6 +106,12 @@ class App extends Component {
       }
       $.ajax(ajax_sendMISTMeasures_settings);
     }
+
+    count++;                             //Aggiunta mia
+    console.log(count);
+    if(count < 1) {
+      setTimeout(this.handleClick(), 4000);
+    } else console.log(stringResult);
     this.displayEndView();
   }
 
@@ -252,6 +261,8 @@ class App extends Component {
               par: "Valore misurato: " + result.toFixed(2) + " ms"
             });
             this.setState({pingValue: result.toFixed(2)});
+            stringResult = stringResult.concat(result.toFixed(2) + "\t");
+            console.log(result.toFixed(2));
             break;
           }
         case "upload":
@@ -262,6 +273,8 @@ class App extends Component {
             this.setState({
               uploadValue: (result / 1000).toFixed(2)
             });
+            stringResult = stringResult.concat((result / 1000).toFixed(2) + "\n");
+            console.log((result / 1000).toFixed(2));
             break;
           }
         case "download":
@@ -272,10 +285,20 @@ class App extends Component {
             this.setState({
               downloadValue: (result / 1000).toFixed(2)
             });
+            stringResult = stringResult.concat((result / 1000).toFixed(2) + "\t");
+            console.log((result / 1000).toFixed(2));
             break;
           }
       }
     }
+  }
+
+  writeFile(value) {
+    const fs = require('fs');
+
+    fs.appendFile('test/test.txt', value, (err) => {
+      if(err) throw err;
+      });
   }
 
   updateTachometer(value, message) {
@@ -517,6 +540,7 @@ class App extends Component {
         }
         break;
       case 1234: //Errore connessione websocket
+        {
           document.getElementById("titolo").innerHTML = "MisuraInternet Speedtest";
           this.setState({
             hdr: 'MisuraInternet Speedtest',
@@ -529,6 +553,7 @@ class App extends Component {
             dataDownload: null
           });
           this.resetMeasureResults();
+        }
           break;
       case 1235: //Errore nell'esecuzione del test di ping in MIST
           this.setState({
