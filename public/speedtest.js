@@ -243,6 +243,11 @@ function downloadTest(host, bytesToDownload, numberOfStreams, timeout, threshold
 	var xhrArray=[];
 	var firstInterval;
 	var secondInterval;
+	var bytesToAdd = [];
+	var lastEndTimes = [];
+	var buffers = [];
+	var abortControllers = [];
+	var preTestTimeout;
 	var measureResult= {
 		type: 'download',
 		start: (new Date(testStartTime)).toISOString(),
@@ -300,45 +305,46 @@ function downloadTest(host, bytesToDownload, numberOfStreams, timeout, threshold
 		xhrArray[index].send();
 	};
 	
-	var downloadStreamFirefox = function(url, host, index) {
+	var downloadStreamFetch = function(url, host, index) {
+		const intervalMillis = 50;
+		
 		var fetchRequest = new Request(url);
-		var prevLoadedBytes=0;
+		var interval;
+		abortControllers[index] = new AbortController();
+		var signal = abortControllers[index].signal;
 		
-		try {
-			fetch(fetchRequest)
-			.then(function(response) {
-				return response.blob();
-			}).then(function(blob) {
-				addBytes(blob.size);
-
-				downloadStream(index,0,host);
-			});
-		}
-		catch(ex) {
-			handleDownloadAndUploadErrors(firstInterval,secondInterval,xhrArray);
-
-			self.postMessage(JSON.stringify(
-				{
-					type: 'error',
-					content: 1236
-				}
-			));
-		}
+		fetch(fetchRequest, { signal })
+		.then(function(response) {
+			return response.blob();
+		}).then(function(blob) {
+			buffers[index] += blob.size;
+			var thisEndTime = Date.now();
+			
+			var numberOfSlices = Math.floor((thisEndTime - lastEndTimes[index])/intervalMillis);
+			bytesToAdd[index] = Math.floor(buffers[index]/numberOfSlices);
+			
+			lastEndTimes[index] = thisEndTime;
+			clearInterval(interval);
+			downloadStream(index,0,host);
+		}).catch(function(error) {
+			
+		});
 		
-		function addBytes(newTotalBytes) {
-			var loadedBytes = newTotalBytes <= 0 ? 0 : (newTotalBytes - prevLoadedBytes);
-			downloadedBytes += loadedBytes;
-			prevLoadedBytes = newTotalBytes;
-		}
+		interval = setInterval(function() {
+			downloadedBytes += bytesToAdd[index];
+			buffers[index] -= bytesToAdd[index];
+		}, intervalMillis);
 	};
 	
 	var downloadStreamImplementation;
-	var isFirefox = (navigator.userAgent.search("Firefox") != -1);
-	if(isFirefox) {
-		downloadStreamImplementation = downloadStreamFirefox;
+
+	if(true) {
+		downloadStreamImplementation = downloadStreamFetch;
+		preTestTimeout = 20000;
 	} 
 	else {
 		downloadStreamImplementation = downloadStreamDefault;
+		preTestTimeout = 12000;
 	}
 
 	/*****download stream function*******/
@@ -362,20 +368,21 @@ function downloadTest(host, bytesToDownload, numberOfStreams, timeout, threshold
 	}
 	/*****end download stream function*******/
 
-	var j=0;
-	var k=0;
+	var k = 0;
 	var downloadHostAndPorts = [];
 	serverPorts.forEach(function (item, index) {
 		downloadHostAndPorts[index] = host + ':' + item;
 	});
 	for(var i=0;i<numberOfStreams;i++){
-		if(j<6)
-			j++;
-		else {
-			k++;
-			j=1;
-		}
-		downloadStream(i,i*100,downloadHostAndPorts[k]);
+		if(k >= downloadHostAndPorts.length)
+			k = 0;
+		
+		downloadStream(i,i*350,downloadHostAndPorts[k]);
+		lastEndTimes[i] = Date.now();
+		bytesToAdd[i] = 0;
+		buffers[i] = 0;
+		
+		k++;
 	}
 
 	firstInterval = setInterval(function () {
@@ -402,9 +409,9 @@ function downloadTest(host, bytesToDownload, numberOfStreams, timeout, threshold
 		previouslyDownloadedBytes= currentlyDownloadedBytes;
 		prevInstSpeedInMbs=instSpeedInMbs;
 
-		if(percentDiff<threshold || (tf - testStartTime > 12000)){
+		if(percentDiff<threshold || (tf - testStartTime > preTestTimeout)){
 			var testWarning= false;
-			if(tf - testStartTime > 12000){
+			if(tf - testStartTime > preTestTimeout){
 				if(instSpeedInMbs===0){
 					handleDownloadAndUploadErrors(firstInterval,secondInterval,xhrArray);
 
@@ -427,6 +434,9 @@ function downloadTest(host, bytesToDownload, numberOfStreams, timeout, threshold
 				var downloadTime= time - measureStartTime;
 				var downloadedBytesAtThisTime=downloadedBytes;
 				var downloadSpeedInMbs=(downloadedBytesAtThisTime*8/1000)/downloadTime;
+				bytesToAdd.forEach(function (item, index) {
+					console.log('bytes' + ' ' + index.toString() + ' ' + item.toString());
+				});
 
 				if(testWarning){
 					self.postMessage(JSON.stringify(
@@ -457,6 +467,9 @@ function downloadTest(host, bytesToDownload, numberOfStreams, timeout, threshold
 
 				if( (time - measureStartTime) >= timeout){
 					closeAllConnections(xhrArray);
+					abortControllers.forEach(function(item, index) {
+						item.abort();
+					});
 					clearInterval(secondInterval);
 					testDone=true;
 					var totalTime= (time - testStartTime)/1000.0;
@@ -466,6 +479,9 @@ function downloadTest(host, bytesToDownload, numberOfStreams, timeout, threshold
 					measureResult.value=measureTime;
 					measureResultsContainer.tests.push(measureResult);
 
+					buffers.forEach(function (item, index) {
+						console.log('buffer' + ' ' + index.toString() + ' ' + item.toString());
+					});
 					self.postMessage(JSON.stringify(
 						{
 							type: 'result',
@@ -515,62 +531,114 @@ function uploadTest(host, bytesToUpload, numberOfStreams, timeout, threshold, ne
 			}
 		}
 	));
+	
+	var uploadStreamDefault = function(url, host, index) {
+		
+		var prevLoadedBytes=0;
+		var xhr = new XMLHttpRequest();
+		xhrArray[index]=xhr;
+
+		xhrArray[index].upload.onprogress=function(event){
+			addBytes(event.loaded);
+		};
+
+		xhrArray[index].upload.onerror=function(event){
+			handleDownloadAndUploadErrors(firstInterval,secondInterval,xhrArray);
+
+			self.postMessage(JSON.stringify(
+				{
+					type: 'error',
+					content: 1237
+				}
+			));
+		};
+
+		xhrArray[index].upload.onload=function(event){
+			xhrArray[index].abort();
+			addBytes(event.loaded);
+			uploadStream(index,0,host);
+		};
+		
+		xhrArray[index].upload.onabort=function(event){
+			addBytes(event.loaded);
+		};
+		
+		function addBytes(newTotalBytes) {
+			var loadedBytes = newTotalBytes <= 0 ? 0 : (newTotalBytes - prevLoadedBytes);
+			uploadedBytes += loadedBytes;
+			prevLoadedBytes = newTotalBytes;
+		}
+
+		xhrArray[index].open('POST',url);
+		xhrArray[index].send(testData);
+	};
+	
+	var uploadStreamFetch = function(url, host, index) {
+		var prevLoadedBytes=0;
+		
+		fetch(url, {
+			method: 'POST',
+			body: testData
+		}).then(function(response) {
+			return response.json();
+		}).then(function(jsonData) {
+			addBytes(parseInt(jsonData.bytes));
+
+			uploadStream(index,0,host);
+		}).catch(function(error) {
+			handleDownloadAndUploadErrors(firstInterval,secondInterval,xhrArray);
+
+			self.postMessage(JSON.stringify(
+				{
+					type: 'error',
+					content: 1237
+				}
+			));
+		});
+		
+		function addBytes(newTotalBytes) {
+			var loadedBytes = newTotalBytes <= 0 ? 0 : (newTotalBytes - prevLoadedBytes);
+			uploadedBytes += loadedBytes;
+			prevLoadedBytes = newTotalBytes;
+		}
+	};
+	
+	var uploadStreamImplementation;
+
+	if(false) {
+		uploadStreamImplementation = uploadStreamFetch;
+	} 
+	else {
+		uploadStreamImplementation = uploadStreamDefault;
+	}
 
 	/***************upload stream*************/
 	function uploadStream(index,delay,host) {
 		setTimeout(function(){
 
-			var prevUploadedBytes=0;
 			if(testDone){
 				return;
 			}
 
-			var xhr= new XMLHttpRequest();
-			xhrArray[index]=xhr;
-
-			xhrArray[index].upload.onprogress=function(event){
-				var loadedBytes= event.loaded <= 0 ? 0 : (event.loaded - prevUploadedBytes); //può accadere che event.loaded sia minore o uguale a zero?
-				uploadedBytes+=loadedBytes;
-				prevUploadedBytes=event.loaded;
-			}
-
-			xhrArray[index].onerror=function(event){
-				handleDownloadAndUploadErrors(firstInterval,secondInterval,xhrArray);
-
-				self.postMessage(JSON.stringify(
-					{
-						type: 'error',
-						content: 1237
-					}
-				));
-			}
-
-			xhrArray[index].upload.onload=function(event){
-				xhrArray[index].abort();
-				uploadStream(index,0,host);
-			}
-
 			var url = 'http://' + host + '?r=' + Math.random();
-			xhrArray[index].open('POST',url);
-			xhrArray[index].send(testData);
+			
+			uploadStreamImplementation(url, host, index);
 		},delay);
 	}
 	/***************end upload stream *************/
 
-	var j=0;
-	var k=0;
+	var k = 0;
 	var uploadHostAndPorts = [];
 	serverPorts.forEach(function (item, index) {
 		uploadHostAndPorts[index] = host + ':' + item;
 	});
 	for(var i=0;i<numberOfStreams;i++){
-		if(j<6)
-			j++;
-		else {
-			k++;
-			j=1;
-		}
+		if(k >= uploadHostAndPorts.length)
+			k = 0;
+		
 		uploadStream(i,i*100,uploadHostAndPorts[k]);
+		
+		k++;
 	}
 
 	firstInterval = setInterval(function () {
@@ -686,13 +754,22 @@ function uploadTest(host, bytesToUpload, numberOfStreams, timeout, threshold, ne
 
 /*************Speedtest****************/
 function startSpeedtest(arrayOfServers){
+	var m50 = 52428800;
+	var m1 = 1048576;
+	var m5 = 5242880;
+	var m10 = 5242880*2;
+	var m25 = m50/2;
+	var m20 = m5*4;
+	var m30 = m10*3;
+	var m80 = m10*8;
+	
 	measureResultsContainer.start= (new Date()).toISOString();
 	var timesToPing=4;
 	var pingMaxTimeout=1000; //ms
-	var bytesToDownload=5242880;  //50MB
-	var bytesToUpload=52428800;    //50MB
-	var numberOfDownloadStreams=12;
-	var numberOfUploadStreams=12;
+	var bytesToDownload=m50;  //50MB
+	var bytesToUpload=m50;    //50MB
+	var numberOfDownloadStreams=4;
+	var numberOfUploadStreams=6;
 	var downloadTestTimeout=10000; //ms
 	var uploadTestTimeout=10000; //ms
 	var downloadTestThreshold=0.10;

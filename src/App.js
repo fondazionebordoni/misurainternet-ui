@@ -81,7 +81,7 @@ class App extends Component {
     var startMISTMsg = {
       request: 'startMeasure',
       //servers: this.state.mistTestServers
-	  servers: ["192.168.1.180"]
+	  servers: ["localhost"]
     };
     worker.postMessage(JSON.stringify(startMISTMsg));
     worker.onmessage = function(message) {
@@ -261,7 +261,7 @@ class App extends Component {
               par: "Valore misurato: " + result.toFixed(2) + " ms"
             });
             this.setState({pingValue: result.toFixed(2)});
-            stringResult = stringResult.concat(result.toFixed(2) + "\t");
+            //stringResult = stringResult.concat(result.toFixed(2) + "\t");
             console.log(result.toFixed(2));
             break;
           }
