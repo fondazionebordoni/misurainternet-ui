@@ -81,7 +81,7 @@ class App extends Component {
     var startMISTMsg = {
       request: 'startMeasure',
       //servers: this.state.mistTestServers
-	  servers: ["localhost"]
+	  servers: ["192.168.1.180"]
     };
     worker.postMessage(JSON.stringify(startMISTMsg));
     worker.onmessage = function(message) {
