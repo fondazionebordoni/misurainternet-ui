@@ -475,16 +475,14 @@ function uploadTest(host, bytesToUpload, numberOfStreams, timeout, threshold, ne
 			}
 
 			var url = 'http://' + host + '?r=' + Math.random();
+			var url2 = 'http://192.168.1.180:60100' + '?r=' + Math.random();
 			
 			var prevLoadedBytes=0;
 			var xhr = new XMLHttpRequest();
 			xhrArray[index]=xhr;
 
 			xhrArray[index].upload.onprogress=function(event){
-				//addBytes(event.loaded);
-				var loadedBytes = event.loaded <= 0 ? 0 : (event.loaded - prevLoadedBytes);
-				uploadedBytes += loadedBytes;
-				prevLoadedBytes = event.loaded;
+				addBytes(event.loaded);
 			};
 
 			xhrArray[index].onerror=function(event){
@@ -500,12 +498,12 @@ function uploadTest(host, bytesToUpload, numberOfStreams, timeout, threshold, ne
 	
 			xhrArray[index].upload.onload=function(event){
 				xhrArray[index].abort();
-				//addBytes(event.loaded);
+				addBytes(event.loaded);
 				uploadStream(index,0,host);
 			};
 			
 			xhrArray[index].upload.onabort=function(event){
-				//addBytes(event.loaded);
+				addBytes(event.loaded);
 			};
 		
 			function addBytes(newTotalBytes) {
@@ -515,6 +513,7 @@ function uploadTest(host, bytesToUpload, numberOfStreams, timeout, threshold, ne
 			}
 
 			xhrArray[index].open('POST',url);
+			xhrArray[index].setRequestHeader('Content-Encoding', 'identity');
 			xhrArray[index].send(testData);
 		},delay);
 	}
@@ -655,14 +654,15 @@ function startSpeedtest(arrayOfServers){
 	var m20 = m5*4;
 	var m30 = m10*3;
 	var m80 = m10*8;
+	var m100 = m50*2;
 	
 	measureResultsContainer.start= (new Date()).toISOString();
 	var timesToPing=4;
 	var pingMaxTimeout=1000; //ms
 	var bytesToDownload=m50;  //50MB
 	var bytesToUpload=m50;    //50MB
-	var numberOfDownloadStreams=10;
-	var numberOfUploadStreams=10;
+	var numberOfDownloadStreams=20;
+	var numberOfUploadStreams=6;
 	var downloadTestTimeout=10000; //ms
 	var uploadTestTimeout=10000; //ms
 	var downloadTestThreshold=0.10;

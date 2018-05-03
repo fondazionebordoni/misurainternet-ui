@@ -109,8 +109,8 @@ class App extends Component {
 
     count++;                             //Aggiunta mia
     console.log(count);
-    if(count < 1) {
-      setTimeout(this.handleClick(), 4000);
+    if(count < 10) {
+      setTimeout(this.handleClick(), 6000);
     } else console.log(stringResult);
     this.displayEndView();
   }
@@ -261,7 +261,7 @@ class App extends Component {
               par: "Valore misurato: " + result.toFixed(2) + " ms"
             });
             this.setState({pingValue: result.toFixed(2)});
-            //stringResult = stringResult.concat(result.toFixed(2) + "\t");
+            stringResult = stringResult.concat(result.toFixed(2) + "\t");
             console.log(result.toFixed(2));
             break;
           }
