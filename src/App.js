@@ -80,8 +80,7 @@ class App extends Component {
     var worker = new Worker(process.env.PUBLIC_URL + 'speedtest.js');
     var startMISTMsg = {
       request: 'startMeasure',
-      //servers: this.state.mistTestServers
-	  servers: ["192.168.1.180"]
+      servers: this.state.mistTestServers
     };
     worker.postMessage(JSON.stringify(startMISTMsg));
     worker.onmessage = function(message) {
@@ -109,7 +108,7 @@ class App extends Component {
 
     count++;                             //Aggiunta mia
     console.log(count);
-    if(count < 10) {
+    if(count < 1) {
       setTimeout(this.handleClick(), 6000);
     } else console.log(stringResult);
     this.displayEndView();

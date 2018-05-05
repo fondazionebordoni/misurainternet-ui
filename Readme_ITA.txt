@@ -7,12 +7,9 @@ La funzionalità principale dell'applicazione è quella di testare la connessione 
 che offrono informazioni sulle prestazioni della rete. 
 
 Informazioni tecniche:
-L'applicazione viene eseguita in un web server che la rende disponibile in rete.
-Un browser può accedervi ed eseguire il test. Lo script che effettua il test è eseguito dal motore JavaScript 
-del browser e le rilevazioni di ping, download, upload sono relative alla connessione della macchina client su cui è aperto il browser.
-Per ottenere le misurazioni lo script si connette ad un server esterno di misurainternet.it.
+Questo progetto contiene un Web Server realizzato con l'ausilio di Node.JS e npm. Il server mette a dispozione l'interfaccia e lo script
+che viene eseguito sul client.
 
-MisuraInternet Speedtest è implementato in JavaScript ed utilizza Node.js per essere eseguito lato server.
 Dal sito ufficiale di Node.js:
 	Node.js® è un runtime Javascript costruito sul motore JavaScript V8 di Chrome.
 	Node.js usa un modello I/O non bloccante e ad eventi, che lo rende un framework leggero ed efficiente. 
@@ -28,25 +25,15 @@ L'applicazione rilasciata in versione definitiva è in esecuzione ed è disponibil
 Se si è intenzionati ad eseguire MisuraInternet Speedtest sulla propria macchina, di seguito sono riportate tutte le informazioni necessarie.
 
 Requisiti:
-- Installare Git. Sarà necessario per scaricare il codice del progetto.
+- Installare Git. Sarà necessario per scaricare e gestire il codice del progetto.
 - Installare Node.js. Durante l'installazione dovrebbe essere installato anche npm, 
   necessario per l'esecuzione dell'applicazione. Assicurarsi che sia installato correttamente.
-- Per caricare l'applicazione, il web browser ha bisogno di avere Cross-Origin Resource Sharing (CORS) abilitato.
-  Può essere abilitato nelle impostazioni per sviluppatori in alcuni browser, altrimenti tramite una estensione.
-  Questa limitazione si verifica quando il web server viene eseguito al di fuori del dominio di misurainternet.it.
-
-Come funziona:
-Un web server, creato e gestito da Node.js, viene eserguito sulla tua macchina. L'applicazione è disponibile attraverso un browser, connettendosi al web server.
-L'applicazione viene eseguita sul motore JavaScript del browser. L'applicazione esegue i test di ping, download e upload utilizzando un server di misurainternet.it esterno.
 
 Istruzioni passo passo per creare l'ambiente di sviluppo sulla tua macchina:
 
 - Usare Git per clonare il progetto da GitHub. Usando Git da linea di comando, lanciare "git clone https://github.com/fondazionebordoni/misurainternet-ui.git"
 - Dal terminale, navigare nella cartella di root del progetto appena clonato "misurainternet-ui"
-- Adesso si devono installare le dipendendenze del progetto. Queste sono descritte nel file "package.json".
-  Per farlo, bisogna usare npm affinchè scarichi le librerie nella cartella del progetto.
-  Inserire nel terminale il comando "npm install" e l'operazione verrà eseguita in automatico. Potrebbe richiedere qualche minuto.
-- Inserire il comando "npm install ws" e aspettare che scarichi tutti i pacchetti
+- Installare i package del progetto con il comando "npm install". I package richiesti dal progetto sono descritti nel file "package.json"
 
 Adesso sarà possibile eseguire il web server, effettuando i seguenti passaggi:
 - Aprire una nuova finestra del terminale e navigare nella cartella di root del progetto.
@@ -55,21 +42,12 @@ Adesso sarà possibile eseguire il web server, effettuando i seguenti passaggi:
 nota: Il web server renderà disponibile l'applicaizone sulla porta 3000. Per accedervi dalla macchina stessa, digitare "localhost:3000"
       nella barra degli indirizzi di un qualsiasi browser.
 
+Questa applicazione NON è in grado di effettuare i test autonomamente. Necessita di un server di test per funzionare.
 
-//Dopo che ho aggiunto le connessioni multiporta, le istruzioni qui sotto non funzionano più, devo sistemare meglio il codice
-
-Istruzioni per configurare l'applicazione in modo che utilizzi un server di test personalizzato:
-Se si vuole usare un proprio server di test (il progetto misurainternet-speedtest ne contiene uno, vedere il readme del progetto
-per maggiori informazioni sul suo utilizzo), in alternativa ai server di misurainternet.it, bisogna fare in modo che l'applicazione web punti a questo server.
-Per fare questa configurazione sarà necessario andare a modificare una riga di codice dell'applicativo.
-La modifica si può fare in 2 modi diversi, in base a 2 casi:
-- Il client avrà accesso ad internet durante l'utilizzo dell'applicativo e durante il test:
-	- Aprire il file public\speedtest.js e cercare nel file la riga "startSpeedtest(req.servers);"
-	- Sostituire "req.servers" con un array di stringhe che contanga una sola stringa, rappresentante l'indirizzo del server di test 
-	  Se per esempio il server di test ha indirizzo 192.168.1.5 e ascolta sulla porta 60100, l'array sarà definito così: ["192.168.1.5:60100"]
-	  Alla fine della modifica, si avrà la riga modificata in questo modo: startSpeedtest(["192.168.1.5:60100"]);
-- Il client non avrà accesso ad internet durante l'utilizzo dell'applicativo e il durante test (un test offline, in una rete in cui siano presenti client, web server e server di test):
-	- Aprire il file App.js e trovare la riga "mistTestServers: null,"
-	- Sosituire "null" con un array di stringhe che contenga una sola stringa, rappresentante l'indirizzo del server di test
-	  Se per esempio il server di test ha indirizzo 192.168.1.5 e ascolta sulla porta 60100, l'array sarà definito così: ["192.168.1.5:60100"]
-	  Alla fine della modifica, si avrà la riga modificata in questo modo: mistTestServers: ["192.168.1.5:60100"],
+- Se si vogliono usare i server online di MisuraInternet, è necessario abilitare i CORS sul browser che si sta utilizzando.
+  Con i browser più comuni può essere fatto facilmente tramite una estensione di terze parti.
+- E' possibile scaricare un server di test dal repository https://github.com/fondazionebordoni/misurainternet-speedtest.
+  In questo modo si può effettuare il test su una rete locale.
+  Per configurare l'applicazione per usare un server locale, è sufficiente conoscere l'indirizzo ip della macchina su cui è in esecuzione il server.
+  L'ip va inserito direttamente nel codice. 
+  Aprire il file public/speedtest.js e andare alla riga di codice 674. Sostituire l'ip con quello del computer su cui è in ascolto il server di test.

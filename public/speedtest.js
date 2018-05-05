@@ -513,7 +513,7 @@ function uploadTest(host, bytesToUpload, numberOfStreams, timeout, threshold, ne
 			}
 
 			xhrArray[index].open('POST',url);
-			xhrArray[index].setRequestHeader('Content-Encoding', 'identity');
+			//xhrArray[index].setRequestHeader('Content-Encoding', 'identity');
 			xhrArray[index].send(testData);
 		},delay);
 	}
@@ -645,7 +645,7 @@ function uploadTest(host, bytesToUpload, numberOfStreams, timeout, threshold, ne
 /*************End upload test****************/
 
 /*************Speedtest****************/
-function startSpeedtest(arrayOfServers){
+function startSpeedtest(arrayOfServers){	
 	var m50 = 52428800;
 	var m1 = 1048576;
 	var m5 = 5242880;
@@ -662,14 +662,21 @@ function startSpeedtest(arrayOfServers){
 	var bytesToDownload=m50;  //50MB
 	var bytesToUpload=m50;    //50MB
 	var numberOfDownloadStreams=20;
-	var numberOfUploadStreams=6;
+	var numberOfUploadStreams=20;
 	var downloadTestTimeout=10000; //ms
 	var uploadTestTimeout=10000; //ms
 	var downloadTestThreshold=0.10;
 	var uploadTestThreshold=0.10;
-
-
-	pingCodeWrapper(arrayOfServers, timesToPing, pingMaxTimeout,
+	var useCustomTestServer = true;
+	
+	var servers;
+	if(useCustomTestServer) {
+		servers = ["192.168.1.180"];  //Put here your custom IP
+	} else {
+		servers = arrayOfServers;
+	}
+	
+	pingCodeWrapper(servers, timesToPing, pingMaxTimeout,
 		function(){
 			downloadTest(measureResultsContainer.server,bytesToDownload,numberOfDownloadStreams,downloadTestTimeout,downloadTestThreshold,
 				function(){
