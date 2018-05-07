@@ -17,6 +17,9 @@ var measureResultsContainer={
 
 var serverPorts = ["60100", "60101", "60102", "60103", "60104", "60105", "60106", "60107", "60108", "60109"];
 
+var useCustomTestServer = true;
+var customTestServerIP = ['192.168.1.5']; //Put here your custom IP
+
 /*************Utility functions****************/
 function terminateWorker(){
 	measureResultsContainer.stop= (new Date()).toISOString();
@@ -667,16 +670,8 @@ function startSpeedtest(arrayOfServers){
 	var uploadTestTimeout=10000; //ms
 	var downloadTestThreshold=0.10;
 	var uploadTestThreshold=0.10;
-	var useCustomTestServer = true;
 	
-	var servers;
-	if(useCustomTestServer) {
-		servers = ["192.168.1.180"];  //Put here your custom IP
-	} else {
-		servers = arrayOfServers;
-	}
-	
-	pingCodeWrapper(servers, timesToPing, pingMaxTimeout,
+	pingCodeWrapper(arrayOfServers, timesToPing, pingMaxTimeout,
 		function(){
 			downloadTest(measureResultsContainer.server,bytesToDownload,numberOfDownloadStreams,downloadTestTimeout,downloadTestThreshold,
 				function(){
@@ -693,9 +688,13 @@ function startSpeedtest(arrayOfServers){
 /************ worker listener **************/
 function workerListener(){
 	self.onmessage=function(message){
-		var req=JSON.parse(message.data);
-		if(req.request && req.request==='startMeasure' && req.servers && req.servers.length>0){
-			startSpeedtest(req.servers);
+		if(useCustomTestServer) {
+			startSpeedtest(customTestServerIP);
+		} else {
+			var req=JSON.parse(message.data);
+			if(req.request && req.request==='startMeasure' && req.servers && req.servers.length>0){
+				startSpeedtest(req.servers);
+			}
 		}
 	}
 }
