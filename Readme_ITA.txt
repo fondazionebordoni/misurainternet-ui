@@ -50,4 +50,4 @@ Questa applicazione NON è in grado di effettuare i test autonomamente. Necessita
   In questo modo si può effettuare il test su una rete locale.
   Per configurare l'applicazione per usare un server locale, è sufficiente conoscere l'indirizzo ip della macchina su cui è in esecuzione il server.
   L'ip va inserito direttamente nel codice. 
-  Aprire il file public/speedtest.js e andare alla riga di codice 674. Sostituire l'ip con quello del computer su cui è in ascolto il server di test.
+  Aprire il file public/speedtest.js e andare alle righe di codice 20 e 21 per configurarlo.
