@@ -18,7 +18,7 @@ var measureResultsContainer={
 var serverPorts = ["60100", "60101", "60102", "60103", "60104", "60105", "60106", "60107", "60108", "60109"];
 
 var useCustomTestServer = true;
-var customTestServerIP = ['192.168.1.5']; //Put here your custom IP
+var customTestServerIP = ['192.168.1.180']; //Put here your custom IP
 
 /*************Utility functions****************/
 function terminateWorker(){
@@ -281,11 +281,12 @@ function downloadTest(host, bytesToDownload, numberOfStreams, timeout, threshold
 			var xhr = new XMLHttpRequest();
 			xhrArray[index]=xhr;
 
-			xhrArray[index].onprogress=function(event){
+			var onprogress=function(event){
 				addBytes(event.loaded);
 			};
 
-			xhrArray[index].onerror=function(event){
+			var onerror=function(event){
+				removeEventListeners();
 				handleDownloadAndUploadErrors(firstInterval,secondInterval,xhrArray);
 
 				self.postMessage(JSON.stringify(
@@ -296,20 +297,34 @@ function downloadTest(host, bytesToDownload, numberOfStreams, timeout, threshold
 				));
 			};
 
-			xhrArray[index].onload=function(event){
+			var onload=function(event){
 				xhrArray[index].abort();
 				addBytes(event.loaded);
+				removeEventListeners();
 				downloadStream(index,0,host);
 			};
 		
-			xhrArray[index].onabort=function(event){
+			var onabort=function(event){
 				addBytes(event.loaded);
+				removeEventListeners();
 			};
 		
 			function addBytes(newTotalBytes) {
 				var loadedBytes = newTotalBytes <= 0 ? 0 : (newTotalBytes - prevLoadedBytes);
 				downloadedBytes += loadedBytes;
 				prevLoadedBytes = newTotalBytes;
+			}
+			
+			var events = {progress: onprogress, error: onerror, load: onload, abort: onabort};
+			
+			function removeEventListeners() {
+				for(var key in events) {
+					xhrArray[index].removeEventListener(key, events[key]);
+				}
+			}
+			
+			for(var key in events) {
+				xhrArray[index].addEventListener(key, events[key]);
 			}
 
 			xhrArray[index].responseType = 'arraybuffer';
@@ -434,7 +449,7 @@ function downloadTest(host, bytesToDownload, numberOfStreams, timeout, threshold
 						nextFunction();
 					}
 				}
-			},200)
+			},50)
 		}
 	}, 3000)
 
@@ -478,17 +493,17 @@ function uploadTest(host, bytesToUpload, numberOfStreams, timeout, threshold, ne
 			}
 
 			var url = 'http://' + host + '?r=' + Math.random();
-			var url2 = 'http://192.168.1.180:60100' + '?r=' + Math.random();
 			
 			var prevLoadedBytes=0;
 			var xhr = new XMLHttpRequest();
 			xhrArray[index]=xhr;
 
-			xhrArray[index].upload.onprogress=function(event){
+			var onprogress = function onProgress(event){
 				addBytes(event.loaded);
-			};
+			}
 
-			xhrArray[index].onerror=function(event){
+			var onerror = function onError(event){
+				removeEventListeners();
 				handleDownloadAndUploadErrors(firstInterval,secondInterval,xhrArray);
 
 				self.postMessage(JSON.stringify(
@@ -497,26 +512,39 @@ function uploadTest(host, bytesToUpload, numberOfStreams, timeout, threshold, ne
 						content: 1237
 					}
 				));
-			};
+			}
 	
-			xhrArray[index].upload.onload=function(event){
+			var onload = function onLoad(event){
 				xhrArray[index].abort();
 				addBytes(event.loaded);
+				removeEventListeners();
 				uploadStream(index,0,host);
-			};
+			}
 			
-			xhrArray[index].upload.onabort=function(event){
+			var onabort = function onAbort(event){
 				addBytes(event.loaded);
-			};
+				removeEventListeners();
+			}
 		
 			function addBytes(newTotalBytes) {
 				var loadedBytes = newTotalBytes <= 0 ? 0 : (newTotalBytes - prevLoadedBytes);
 				uploadedBytes += loadedBytes;
 				prevLoadedBytes = newTotalBytes;
 			}
+			
+			var events = {progress: onprogress, error: onerror, load: onload, abort: onabort};
+			
+			function removeEventListeners() {
+				for(var key in events) {
+					xhrArray[index].upload.removeEventListener(key, events[key]);
+				}
+			}
+			
+			for(var key in events) {
+				xhrArray[index].upload.addEventListener(key, events[key]);
+			}
 
 			xhrArray[index].open('POST',url);
-			//xhrArray[index].setRequestHeader('Content-Encoding', 'identity');
 			xhrArray[index].send(testData);
 		},delay);
 	}
@@ -640,7 +668,7 @@ function uploadTest(host, bytesToUpload, numberOfStreams, timeout, threshold, ne
 						nextFunction();
 					}
 				}
-			},200)
+			},50)
 		}
 	}, 3000)
 
