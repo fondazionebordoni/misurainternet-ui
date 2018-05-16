@@ -6,7 +6,7 @@
 */
 
 /*************Global variables****************/
-var measureResultsContainer={
+var measureResultsContainer = {
 	type: 'speedtest',
 	version: '3.0.0',
 	server: null,
@@ -18,10 +18,10 @@ var measureResultsContainer={
 var serverPorts = ["60100", "60101", "60102", "60103", "60104", "60105", "60106", "60107", "60108", "60109"];
 
 var useCustomTestServer = true;
-var customTestServerIP = ['192.168.1.5']; //Put here your custom IP
+var customTestServerIP = ['localhost']; //Put here your custom IP
 
 /*************Utility functions****************/
-function terminateWorker(){
+function terminateWorker() {
 	measureResultsContainer.stop= (new Date()).toISOString();
 	self.postMessage(JSON.stringify(measureResultsContainer));
 	self.close();
@@ -78,15 +78,17 @@ function generateTestData(numberOfMB){
 }
 
 /**************Ping code wrapper*************/
-function pingCodeWrapper(arrayOfHostNamesAndPorts, times, maxTimeout, nextFunction){
+function pingCodeWrapper(arrayOfHostNamesAndPorts, times, maxTimeout, nextFunction) {
 	var latencyAvgValue;
 	var measureResult;
 
 	/*************Ping multiple servers***************/
-	function pingTest(arrayOfHostNamesAndPorts, times, maxTimeout, nextFunction){
-		var currentMeasureResult=[];
-		for(var i=0; i<times; i++){
-			var pingObj={
+	function pingTest(arrayOfHostNamesAndPorts, times, maxTimeout, nextFunction) {
+		var currentMeasureResult = [];
+		
+		//Inizializza l'array di risultati del test
+		for(var i=0; i<times; i++) {
+			var pingObj = {
 				type: 'ping',
 				start: null,
 				byte: 0,
@@ -94,37 +96,58 @@ function pingCodeWrapper(arrayOfHostNamesAndPorts, times, maxTimeout, nextFuncti
 			};
 			currentMeasureResult.push(pingObj);
 		}
+		
 		var hostName = arrayOfHostNamesAndPorts[0];
 		var hostNameAndPort = hostName + ':' + serverPorts[0];
-		var firstPingDone=false;
-		var count=0;
-		var totalTime=0;
-		var t0=0;
+		var firstPingDone = false;
+		var count = 0;
+		var totalTime = 0;
+		var t0 = 0;
 		var timeout;
-		var timeoutEventFired=false;
-		var ws=new WebSocket('ws://' + hostNameAndPort);
+		var timeoutEventFired = false;
+		var ws = new WebSocket('ws://' + hostNameAndPort);
+		
+		//Funzione per calcolare il jitter a partire dal valor medio del ping, array dei ping e il numero di ping
+		function calculateJitter(pingAvg, pingArray, pingCount) {
+			let jitter = 0;
+			
+			for(let i=0; i<pingCount; i++) {
+				let diff = (pingArray[i].value - pingAvg);
+				jitter += diff * diff;
+				//console.log(`Ping #${i+1} ${pingArray[i].value}`);
+			}
+			jitter /= pingCount;
+			
+			return Math.sqrt(jitter);
+		}
 
 		//funzione di utilità per gestire errori, timeout oppure la terminazione del test di ping
-		var handleErrorsOrTimeoutsOrTestFinished= function(){
-			if(ws.readyState<3){ //se la connessione websocket non è stata chiusa
+		function handleErrorsOrTimeoutsOrTestFinished() {	
+			//Se la connessione websocket non è stata chiusa, viene chiusa [0 = CONNECTING, 1 = OPEN, 2 = CLOSING, 3 = CLOSED]
+			if(ws.readyState < 3) {
 				ws.close();
 			}
-			if(arrayOfHostNamesAndPorts.length===1){ //ho pingato l'ultimo server della lista di server passata come parametro alla funzione
-				if(nextFunction && measureResultsContainer.server){
-					measureResultsContainer.tests= measureResultsContainer.tests.concat(measureResult);
+			
+			//ho pingato l'ultimo server della lista di server passata come parametro alla funzione
+			if(arrayOfHostNamesAndPorts.length === 1) {
+				if(nextFunction && measureResultsContainer.server) {
+					measureResultsContainer.tests = measureResultsContainer.tests.concat(measureResult);
+					//Messaggio finale con il risultato del test di ping che viene mandato ad App.js, che arriva alla funzione displayResult
 					self.postMessage(JSON.stringify(
 						{
 							type: 'result',
 							content: {
 								test_type: 'ping',
-								result: latencyAvgValue
+								//Modificato per inglobare anche il valore del jitter in un solo JSON
+								result: {
+									ping: latencyAvgValue,
+									jitter: calculateJitter(latencyAvgValue, currentMeasureResult, times)
+								}
 							}
 						}
 					));
 					nextFunction();
-				}
-				else if(!measureResultsContainer.server){
-
+				} else if(!measureResultsContainer.server) {
 					self.postMessage(JSON.stringify(
 						{
 							type: 'error',
@@ -135,7 +158,7 @@ function pingCodeWrapper(arrayOfHostNamesAndPorts, times, maxTimeout, nextFuncti
 			}
 
 			//altrimenti, pingo i server restanti
-			else{
+			else {
 				arrayOfHostNamesAndPorts.shift(); //rimuovo l'elemento in testa all'array
 				pingTest(arrayOfHostNamesAndPorts, times, maxTimeout, nextFunction);
 			}
@@ -143,75 +166,82 @@ function pingCodeWrapper(arrayOfHostNamesAndPorts, times, maxTimeout, nextFuncti
 		} //end handleErrorsOrTimeoutsOrTestFinished function
 
 
-		//altra funzione di utilità per mandare, tramite websocket, delle stringe vuote
-		var sendPingMessage= function(){
-			t0=Date.now();
+		//altra funzione di utilità per mandare, tramite websocket, delle stringhe vuote
+		var sendPingMessage = function() {
+			t0 = Date.now();
 			ws.send('');
-			timeout=setTimeout(function(){
-				timeoutEventFired=true;
+			//Il valore di ritorno di setTimeout è l'handle associato al timeout stesso, univoco per ogni chiamata di setTimeout
+			timeout = setTimeout(function() {
+				timeoutEventFired = true;
 				handleErrorsOrTimeoutsOrTestFinished();
 			},maxTimeout);
 		}// end sendPingMessage
 
-		var websocketConnectionFailedTimeout=setTimeout(function(){
-			if(ws.readyState===0){  //Il websocket si trova ancora in stato connecting e non è stata ancora instaurata la connessione
-				ws.close();  //chiamare ws.close() quando non è stata ancora aperta la connessione causa una chiusura del websocket con event code = 1006. Questa cosa implica la chiamata dell'event handler onclose che a sua volta chiamerà handleErrorsOrTimeoutsOrTestFinished
+		var websocketConnectionFailedTimeout = setTimeout(function() {
+			//Il websocket si trova ancora in stato connecting e non è stata ancora instaurata la connessione
+			if(ws.readyState === 0){
+				//Chiamare ws.close() quando non è stata ancora aperta la connessione causa una chiusura del websocket con event code = 1006. 
+				//Questa cosa implica la chiamata dell'event handler onclose che a sua volta chiamerà handleErrorsOrTimeoutsOrTestFinished
+				ws.close();  
 			}
 		},2000);
 
-		ws.onopen=function(){
+		ws.onopen = function() {
 			clearTimeout(websocketConnectionFailedTimeout);
 			sendPingMessage();
 		}
 
-		ws.onclose=function(event){
-			if(event.code!=1000){ // chiusura imprevista della connessione websocket
+		ws.onclose = function(event) {
+			if(event.code != 1000) { // chiusura imprevista della connessione websocket
 				handleErrorsOrTimeoutsOrTestFinished();
 			}
 		}
 
-		ws.onmessage=function(){
-			if(timeoutEventFired){
+		ws.onmessage = function() {
+			if(timeoutEventFired) {
 				return;
 			}
 
-			var tf=Date.now();
-			clearTimeout(timeout);  //rimuovo il timeout che avevo impostato al momento dell'invio del messaggio in websocket dato che ho ricevuto il messaggio di risposta prima che scattasse il timeout
+			var tf = Date.now();
+			
+			//Rimuovo il timeout impostato al momento dell'invio del messaggio in websocket,
+			//questo perché ho ricevuto il messaggio di risposta prima che scattasse il timeout
+			clearTimeout(timeout);  
 
-			if(!firstPingDone){  //escludo il primo ping
-				var firstPingValue= tf - t0;
-				firstPingDone=true;
+			//Non ho fatto un primo ping, lo escludo per avere una misura più accurata
+			if(!firstPingDone) {
+				var firstPingValue = tf - t0;
+				firstPingDone = true;
 				sendPingMessage();
-			}
-
-			else{
-				var latency= tf - t0;
-				currentMeasureResult[count].start=(new Date(t0)).toISOString();
-				currentMeasureResult[count].value=latency;
+			//Ho fatto il primo ping e la misura del ping inizia da qui
+			} else {
+				var latency = tf - t0;
+				currentMeasureResult[count].start = (new Date(t0)).toISOString();
+				currentMeasureResult[count].value = latency;
 				count++;
-				totalTime+=latency;
+				totalTime += latency;
 
-				if(count===times){
+				//Il server è stato pingato il numero di volte richiesto
+				if(count === times) {
 					var pingAvgValue=totalTime/count;
 
-					if(!measureResultsContainer.server){ //primo server che viene pingato
-						measureResultsContainer.server=hostName;
-						latencyAvgValue=pingAvgValue;
-						measureResult=currentMeasureResult;
-					}
-					else{
-						if(latencyAvgValue && pingAvgValue<latencyAvgValue){
-							measureResultsContainer.server=hostName;
-							latencyAvgValue=pingAvgValue;
-							measureResult=currentMeasureResult;
+					if(!measureResultsContainer.server) { //primo server che viene pingato
+						measureResultsContainer.server = hostName;
+						latencyAvgValue = pingAvgValue;
+						measureResult = currentMeasureResult;
+					} else {
+						if(latencyAvgValue && pingAvgValue < latencyAvgValue) {
+							measureResultsContainer.server = hostName;
+							latencyAvgValue = pingAvgValue;
+							measureResult = currentMeasureResult;
 						}
 					}
 
 					//Funzione per gestire il passaggio a un altro server da pingare oppure all'esecuzione della prossima funzione
 					handleErrorsOrTimeoutsOrTestFinished();
-				}
-
-				else{ //non ho finito il test, devo pingare ancora il server in questione
+					
+				//Il test non è finito, il server deve essere ancora pingato
+				} else {
 					sendPingMessage();
 				}
 			}
@@ -236,16 +266,16 @@ function pingCodeWrapper(arrayOfHostNamesAndPorts, times, maxTimeout, nextFuncti
 
 /*************Download test****************/
 function downloadTest(host, bytesToDownload, numberOfStreams, timeout, threshold, nextFunction) {
-	var testStartTime= Date.now();
-	var previouslyDownloadedBytes=0;
-	var previousDownloadTime=testStartTime;
-	var prevInstSpeedInMbs=0;
-	var downloadedBytes=0;
-	var testDone=false;
-	var xhrArray=[];
+	var testStartTime = Date.now();
+	var previouslyDownloadedBytes = 0;
+	var previousDownloadTime = testStartTime;
+	var prevInstSpeedInMbs = 0;
+	var downloadedBytes = 0;
+	var testDone = false;
+	var xhrArray = [];
 	var firstInterval;
 	var secondInterval;
-	var measureResult= {
+	var measureResult = {
 		type: 'download',
 		start: (new Date(testStartTime)).toISOString(),
 		byte: null,
@@ -262,14 +292,14 @@ function downloadTest(host, bytesToDownload, numberOfStreams, timeout, threshold
 	));
 
 	/*****download stream function*******/
-	var downloadStream= function(index,delay,host) {
-		setTimeout(function(){
+	var downloadStream = function(index, delay, host) {
+		setTimeout(function() {
 
-			if(testDone){
+			if(testDone) {
 				return;
 			}
 			
-			var req={
+			var req = {
 				request:'download',
 				data_length: bytesToDownload
 			};
@@ -279,14 +309,14 @@ function downloadTest(host, bytesToDownload, numberOfStreams, timeout, threshold
 
 			var prevLoadedBytes=0;
 			var xhr = new XMLHttpRequest();
-			xhrArray[index]=xhr;
+			xhrArray[index] = xhr;
 
-			xhrArray[index].onprogress=function(event){
+			xhrArray[index].onprogress = function(event) {
 				addBytes(event.loaded);
 			};
 
-			xhrArray[index].onerror=function(event){
-				handleDownloadAndUploadErrors(firstInterval,secondInterval,xhrArray);
+			xhrArray[index].onerror = function(event) {
+				handleDownloadAndUploadErrors(firstInterval, secondInterval, xhrArray);
 
 				self.postMessage(JSON.stringify(
 					{
@@ -296,13 +326,13 @@ function downloadTest(host, bytesToDownload, numberOfStreams, timeout, threshold
 				));
 			};
 
-			xhrArray[index].onload=function(event){
+			xhrArray[index].onload = function(event) {
 				xhrArray[index].abort();
 				addBytes(event.loaded);
 				downloadStream(index,0,host);
 			};
 		
-			xhrArray[index].onabort=function(event){
+			xhrArray[index].onabort = function(event) {
 				addBytes(event.loaded);
 			};
 		
@@ -324,7 +354,7 @@ function downloadTest(host, bytesToDownload, numberOfStreams, timeout, threshold
 	serverPorts.forEach(function (item, index) {
 		downloadHostAndPorts[index] = host + ':' + item;
 	});
-	for(var i=0;i<numberOfStreams;i++){
+	for(var i=0; i<numberOfStreams; i++){
 		if(k >= downloadHostAndPorts.length)
 			k = 0;
 		
@@ -334,12 +364,12 @@ function downloadTest(host, bytesToDownload, numberOfStreams, timeout, threshold
 	}
 
 	firstInterval = setInterval(function () {
-		var tf=Date.now();
-		var deltaTime=tf - previousDownloadTime;
+		var tf = Date.now();
+		var deltaTime = tf - previousDownloadTime;
 		var currentlyDownloadedBytes = downloadedBytes;
-		var deltaByte= currentlyDownloadedBytes - previouslyDownloadedBytes;
-		var instSpeedInMbs= (deltaByte *8/1000.0)/deltaTime;
-		var percentDiff=Math.abs((instSpeedInMbs - prevInstSpeedInMbs)/instSpeedInMbs); //potrebbe anche essere negativo
+		var deltaByte = currentlyDownloadedBytes - previouslyDownloadedBytes;
+		var instSpeedInMbs = (deltaByte *8/1000.0)/deltaTime;
+		var percentDiff = Math.abs((instSpeedInMbs - prevInstSpeedInMbs)/instSpeedInMbs); //potrebbe anche essere negativo
 
 		self.postMessage(JSON.stringify(
 			{
@@ -353,15 +383,15 @@ function downloadTest(host, bytesToDownload, numberOfStreams, timeout, threshold
 			}
 		));
 
-		previousDownloadTime=tf;
-		previouslyDownloadedBytes= currentlyDownloadedBytes;
-		prevInstSpeedInMbs=instSpeedInMbs;
+		previousDownloadTime = tf;
+		previouslyDownloadedBytes = currentlyDownloadedBytes;
+		prevInstSpeedInMbs = instSpeedInMbs;
 
-		if(percentDiff<threshold || (tf - testStartTime > 10000)){
-			var testWarning= false;
-			if(tf - testStartTime > 10000){
-				if(instSpeedInMbs===0){
-					handleDownloadAndUploadErrors(firstInterval,secondInterval,xhrArray);
+		if(percentDiff<threshold || (tf - testStartTime > 10000)) {
+			var testWarning = false;
+			if(tf - testStartTime > 10000) {
+				if(instSpeedInMbs === 0){
+					handleDownloadAndUploadErrors(firstInterval, secondInterval, xhrArray);
 
 					self.postMessage(JSON.stringify(
 						{
@@ -371,18 +401,18 @@ function downloadTest(host, bytesToDownload, numberOfStreams, timeout, threshold
 					));
 					return;
 				}
-				testWarning=true;
+				testWarning = true;
 			}
 			var measureStartTime = Date.now();
 			downloadedBytes = 0;
 			clearInterval(firstInterval);
 
-			secondInterval= setInterval(function(){
-				var time= Date.now();
-				var downloadTime= time - measureStartTime;
-				var downloadedBytesAtThisTime=downloadedBytes;
-				var downloadSpeedInMbs=(downloadedBytesAtThisTime*8/1000)/downloadTime;
-				if(testWarning){
+			secondInterval = setInterval(function() {
+				var time = Date.now();
+				var downloadTime = time - measureStartTime;
+				var downloadedBytesAtThisTime = downloadedBytes;
+				var downloadSpeedInMbs = (downloadedBytesAtThisTime*8/1000)/downloadTime;
+				if(testWarning) {
 					self.postMessage(JSON.stringify(
 						{
 							type: 'tachometer',
@@ -394,8 +424,7 @@ function downloadTest(host, bytesToDownload, numberOfStreams, timeout, threshold
 							}
 						}
 					));
-				}
-				else{
+				} else {
 					self.postMessage(JSON.stringify(
 						{
 							type: 'tachometer',
@@ -409,15 +438,15 @@ function downloadTest(host, bytesToDownload, numberOfStreams, timeout, threshold
 					));
 				}
 
-				if( (time - measureStartTime) >= timeout){
+				if( (time - measureStartTime) >= timeout) {
 					closeAllConnections(xhrArray);
 					clearInterval(secondInterval);
-					testDone=true;
-					var totalTime= (time - testStartTime)/1000.0;
-					var measureTime= time - measureStartTime;
-					var downloadSpeedInKbs=downloadSpeedInMbs*1000;
-					measureResult.byte=downloadedBytesAtThisTime;
-					measureResult.value=measureTime;
+					testDone = true;
+					var totalTime = (time - testStartTime)/1000.0;
+					var measureTime = time - measureStartTime;
+					var downloadSpeedInKbs = downloadSpeedInMbs*1000;
+					measureResult.byte = downloadedBytesAtThisTime;
+					measureResult.value = measureTime;
 					measureResultsContainer.tests.push(measureResult);
 					self.postMessage(JSON.stringify(
 						{
@@ -430,7 +459,7 @@ function downloadTest(host, bytesToDownload, numberOfStreams, timeout, threshold
 					));
 
 					//esegui, se presente, la successiva funzione
-					if(nextFunction){
+					if(nextFunction) {
 						nextFunction();
 					}
 				}
@@ -647,6 +676,122 @@ function uploadTest(host, bytesToUpload, numberOfStreams, timeout, threshold, ne
 }
 /*************End upload test****************/
 
+function packetLossTest(arrayOfHostNamesAndPorts, packetsToSend, maxTimeout, nextFunction) {
+
+	/*************Ping multiple servers***************/
+	function lossTest(arrayOfHostNamesAndPorts, packetsToSend, maxTimeout, nextFunction) {
+		var packetsLost = 0;
+		
+		var hostName = arrayOfHostNamesAndPorts[0];
+		var hostNameAndPort = hostName + ':' + serverPorts[1];
+		var count = 0;
+		var timeout;
+		var timeoutEventFired = false;
+		var ws = new WebSocket('ws://' + hostNameAndPort);
+
+		//funzione di utilità per gestire errori, timeout oppure la terminazione del test di ping
+		function handleErrorsOrTimeoutsOrTestFinished() {		
+			if(ws.readyState < 3) { //se la connessione websocket non è stata chiusa
+				ws.close();
+			}
+			
+			//ho pingato l'ultimo server della lista di server passata come parametro alla funzione
+			if(arrayOfHostNamesAndPorts.length === 1) {
+				if(nextFunction && measureResultsContainer.server) {
+					//Messaggio finale con il risultato del test di ping che viene mandato ad App.js, che arriva alla funzione displayResult
+					self.postMessage(JSON.stringify(
+						{
+							type: 'result',
+							content: {
+								test_type: 'packetLoss',
+								result: packetsLost/packetsToSend*100
+							}
+						}
+					));
+					nextFunction();
+				} else if(!measureResultsContainer.server) {
+					self.postMessage(JSON.stringify(
+						{
+							type: 'error',
+							content: 1235
+						}
+					));
+				}
+				
+			//altrimenti, pingo i server restanti
+			} else {
+				arrayOfHostNamesAndPorts.shift(); //rimuovo l'elemento in testa all'array
+				lossTest(arrayOfHostNamesAndPorts, packetsToSend, maxTimeout, nextFunction);
+			}
+
+		} //end handleErrorsOrTimeoutsOrTestFinished function
+
+
+		//altra funzione di utilità per mandare, tramite websocket, delle stringhe vuote
+		var sendPingMessage = function() {
+			ws.send('');
+			timeout = setTimeout(function() {
+				timeoutEventFired = true;
+				//handleErrorsOrTimeoutsOrTestFinished();
+				sendPingMessage();
+				count++;
+				packetsLost++;
+			},maxTimeout);
+		}// end sendPingMessage
+
+		var websocketConnectionFailedTimeout = setTimeout(function() {
+			//Il websocket si trova ancora in stato connecting e non è stata ancora instaurata la connessione
+			if(ws.readyState === 0){
+				//Chiamare ws.close() quando non è stata ancora aperta la connessione causa una chiusura del websocket con event code = 1006. 
+				//Questa cosa implica la chiamata dell'event handler onclose che a sua volta chiamerà handleErrorsOrTimeoutsOrTestFinished
+				ws.close();  
+			}
+		},2000);
+
+		ws.onopen = function() {
+			clearTimeout(websocketConnectionFailedTimeout);
+			sendPingMessage();
+		}
+
+		ws.onclose = function(event) {
+			if(event.code != 1000) { // chiusura imprevista della connessione websocket
+				handleErrorsOrTimeoutsOrTestFinished();
+			}
+		}
+
+		ws.onmessage = function() {
+			if(!timeoutEventFired) {
+				//Rimuovo il timeout impostato al momento dell'invio del messaggio in websocket,
+				//questo perché ho ricevuto il messaggio di risposta prima che scattasse il timeout
+				clearTimeout(timeout);
+			}
+			
+			count++;
+			//Il server deve ancora essere pingato
+			if(count < packetsToSend) {
+				sendPingMessage();
+			//Il server è stato pingato il numero di volte richiesto
+			} else {
+				//Funzione per gestire il passaggio a un altro server da pingare oppure all'esecuzione della prossima funzione
+				handleErrorsOrTimeoutsOrTestFinished();
+			}
+
+		} //end onmessage
+
+	}//end pingTest function
+
+	self.postMessage(JSON.stringify(
+		{
+			type: 'measure',
+			content: {
+				'test_type': 'packetLoss'
+			}
+		}
+	));
+
+	lossTest(arrayOfHostNamesAndPorts, packetsToSend, maxTimeout, nextFunction);
+}	
+
 /*************Speedtest****************/
 function startSpeedtest(arrayOfServers){	
 	var m50 = 52428800;
@@ -659,27 +804,40 @@ function startSpeedtest(arrayOfServers){
 	var m80 = m10*8;
 	var m100 = m50*2;
 	
-	measureResultsContainer.start= (new Date()).toISOString();
-	var timesToPing=4;
-	var pingMaxTimeout=1000; //ms
-	var bytesToDownload=m50;  //50MB
-	var bytesToUpload=m50;    //50MB
-	var numberOfDownloadStreams=20;
-	var numberOfUploadStreams=20;
-	var downloadTestTimeout=10000; //ms
-	var uploadTestTimeout=10000; //ms
-	var downloadTestThreshold=0.10;
-	var uploadTestThreshold=0.10;
+	measureResultsContainer.start = (new Date()).toISOString();
+	var packetLossCount = 100;
+	var timesToPing = 10;
+	var pingMaxTimeout = 1000; //ms
+	var bytesToDownload = m50;  //50MB
+	var bytesToUpload = m50;    //50MB
+	var numberOfDownloadStreams = 20;
+	var numberOfUploadStreams = 20;
+	var downloadTestTimeout = 10000; //ms
+	var uploadTestTimeout = 10000; //ms
+	var downloadTestThreshold = 0.10;
+	var uploadTestThreshold = 0.10;
+	
 	
 	pingCodeWrapper(arrayOfServers, timesToPing, pingMaxTimeout,
 		function(){
-			downloadTest(measureResultsContainer.server,bytesToDownload,numberOfDownloadStreams,downloadTestTimeout,downloadTestThreshold,
+			packetLossTest(arrayOfServers, packetLossCount, pingMaxTimeout, 
 				function(){
-					uploadTest(measureResultsContainer.server,bytesToUpload,numberOfUploadStreams,uploadTestTimeout,uploadTestThreshold,terminateWorker);
+					downloadTest(measureResultsContainer.server,bytesToDownload,numberOfDownloadStreams,downloadTestTimeout,downloadTestThreshold,
+						function(){
+							uploadTest(measureResultsContainer.server,bytesToUpload,numberOfUploadStreams,uploadTestTimeout,uploadTestThreshold,terminateWorker);
+						}
+					)
 				}
 			)
 		}
 	);
+	
+	
+	/*
+	pingCodeWrapper(arrayOfServers, timesToPing, pingMaxTimeout, function() {
+		packetLossTest(arrayOfServers, packetLossCount, pingMaxTimeout, terminateWorker)
+	})
+	*/
 }
 /*************End speedtest****************/
 

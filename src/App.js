@@ -13,6 +13,7 @@ var listelements = [];
 var client_id = null;
 var count = 0;  //Aggiunta mia
 var stringResult = ""; //Aggiunta mia
+var numOfTests = 1;
 
 class App extends Component {
   constructor(props) {
@@ -31,7 +32,9 @@ class App extends Component {
 
       unitMeasure: "",
       gaugeColor: "#0275d8",
+	  packetsLost: 0,
       pingValue: 0,
+	  jitterValue: 0,
       downloadValue: 0,
       uploadValue: 0,
       notifiche: [],
@@ -47,6 +50,7 @@ class App extends Component {
       cardWifi: " ",
 
       dataPing: null,
+	  dataJitter: null,
       dataUpload: null,
       dataDownload: null
     }
@@ -63,11 +67,13 @@ class App extends Component {
     this.resetMeasureResults=this.resetMeasureResults.bind(this);
   }
 
-  resetMeasureResults(){
+  resetMeasureResults() {
     this.setState({
       unitMeasure: "",
       gaugeColor: "#0275d8",
+	  packetsLost: 0,
       pingValue: 0,
+	  jitterValue: 0,
       downloadValue: 0,
       uploadValue: 0,
       valore: 0,
@@ -88,13 +94,13 @@ class App extends Component {
     }.bind(this)
   }
 
-  handleMISTResults(measureResults){
+  handleMISTResults(measureResults) {
     measureResults={measure: measureResults};
-    if(this.mistClientId && this.mistClientId.length>0){
+    if(this.mistClientId && this.mistClientId.length>0) {
       measureResults.measure.serial=this.mistClientId;
       var jsonResultData=JSON.stringify(measureResults);
       var ajax_sendMISTMeasures_settings = {
-        "async": true,
+        "async": true, 
         "url": "https://www.misurainternet.it/set_measures/?type=speedtest",
         "method": "POST",
         "headers": {
@@ -108,13 +114,14 @@ class App extends Component {
 
     count++;                             //Aggiunta mia
     console.log(count);
-    if(count < 10) {
+	//Il numero di test da effettuare premendo start
+    if(count < numOfTests) {
       setTimeout(this.handleClick(), 6000);
     } else console.log(stringResult);
     this.displayEndView();
   }
 
-  handleWebSocketErrors(){
+  handleWebSocketErrors() {
     this.setState({isNeMeSysRunning: false});
     this.displayError(1234);
     this.resetMeasureResults();
@@ -128,7 +135,8 @@ class App extends Component {
       "cache-control": "no-cache"
       }
     }
-    $.ajax(ajax_getMISTSerial_settings).done(function(response){
+	
+    $.ajax(ajax_getMISTSerial_settings).done(function(response) {
       this.mistClientId=response.serial;
       this.displayWaitView(this.mistClientId);
     }.bind(this));
@@ -141,7 +149,8 @@ class App extends Component {
         "cache-control": "no-cache",
       }
     }
-    $.ajax(ajax_getMISTServers_settings).done(function(response){
+	
+    $.ajax(ajax_getMISTServers_settings).done(function(response) {
       var arrayOfServers=[];
       for(var i=0; i<response.servers.length; i++){
         arrayOfServers.push((response.servers[i].ip + ':' +  response.servers[i].port));
@@ -167,20 +176,19 @@ class App extends Component {
     ws.onmessage = function(message) {
       var msg = JSON.parse(message.data);
       this.readMessage(msg);
-
     }.bind(this)
 
-    ws.onclose = function (event) {
+    ws.onclose = function(event) {
       /*Se la chiusura del websocket è causata da un errore allora viene eseguito MIST*/
       if (event.code !== 1000) {
           this.handleWebSocketErrors();
       }
     }.bind(this);
+	
   }
 
   readMessage(msg) {
-
-    switch (msg.type) {
+    switch(msg.type) {
       case "sys_resource":
         this.sysResource(msg.content.resource, msg.content.state, msg.content.info);
         break;
@@ -223,10 +231,10 @@ class App extends Component {
     var d = new Date();
     var h = d.getHours();
     var m = d.getMinutes();
-    if (h < 10) {
+    if(h < 10) {
       h = '0' + h;
     }
-    if (m < 10) {
+    if(m < 10) {
       m = '0' + m;
     }
 
@@ -257,11 +265,14 @@ class App extends Component {
         case "ping":
           {
             this.setState({
-              par: "Valore misurato: " + result.toFixed(2) + " ms"
+              par: "Valore misurato: " + result.ping.toFixed(2) + " ms"
             });
-            this.setState({pingValue: result.toFixed(2)});
-            stringResult = stringResult.concat(result.toFixed(2) + "\t");
-            console.log(result.toFixed(2));
+            this.setState({
+				pingValue: result.ping.toFixed(2),
+				jitterValue: result.jitter.toFixed(2)
+			});
+            stringResult = stringResult.concat(result.ping.toFixed(2) + "\t");
+            console.log(result.ping.toFixed(2));
             break;
           }
         case "upload":
@@ -288,6 +299,11 @@ class App extends Component {
             console.log((result / 1000).toFixed(2));
             break;
           }
+		case "packetLoss":
+		  {
+			this.setState({packetsLost: result.toFixed(2)});
+			break;
+		  }
       }
     }
   }
@@ -514,6 +530,13 @@ class App extends Component {
           this.setState({unitMeasure: "ms"});
         }
         break;
+	  case "packetLoss":
+        {
+          this.setState({gaugeColor: '#ffc107'});
+          this.setState({hdr: "Test di packet loss in corso..."});
+          this.setState({unitMeasure: "%"});
+        }
+        break;
       default:
         this.setState({hdr: "Errore imprevisto"});
     }
@@ -611,8 +634,28 @@ class App extends Component {
       <div>
         <Intestazione hdr={this.state.hdr} licenceInfo={this.state.licenceInfo} par={this.state.par}/>
         {this.state.isNeMeSysRunning && <ContenitoreIconeDiStato statoEthernet={this.state.statoEthernet} statoCpu={this.state.statoCpu} statoRam={this.state.statoRam} statoWifi={this.state.statoWifi} cardEthernet={this.state.cardEthernet} cardCpu={this.state.cardCpu} cardRam={this.state.cardRam} cardWifi={this.state.cardWifi}/>}
-        <MisuraCorrente onClick={this.handleClick} areMistTestServersAvailable={this.state.mistTestServers} isNeMeSysRunning={this.state.isNeMeSysRunning} value={this.state.valore} unitMeasure={this.state.unitMeasure} gaugeColor={this.state.gaugeColor} pingValue={this.state.pingValue} downloadValue={this.state.downloadValue} uploadValue={this.state.uploadValue}/>
-        {(this.state.isNeMeSysRunning || (this.state.dataPing && this.state.dataDownload && this.state.dataUpload)) && <Riepilogo isNeMeSysRunning={this.state.isNeMeSysRunning} misCorrenti={this.state.misCorrenti} dataPing={this.state.dataPing} dataDownload={this.state.dataDownload} dataUpload={this.state.dataUpload} notifiche={this.state.notifiche}/>}
+        <MisuraCorrente 
+			onClick={this.handleClick} 
+			areMistTestServersAvailable={this.state.mistTestServers} 
+			isNeMeSysRunning={this.state.isNeMeSysRunning} 
+			value={this.state.valore} 
+			unitMeasure={this.state.unitMeasure} 
+			gaugeColor={this.state.gaugeColor} 
+			packetsLost={this.state.packetsLost}
+			pingValue={this.state.pingValue}
+			jitterValue={this.state.jitterValue}
+			downloadValue={this.state.downloadValue} 
+			uploadValue={this.state.uploadValue}
+		/>
+        {(this.state.isNeMeSysRunning || (this.state.dataPing && this.state.dataDownload && this.state.dataUpload)) && 
+		<Riepilogo 
+			isNeMeSysRunning={this.state.isNeMeSysRunning} 
+			misCorrenti={this.state.misCorrenti} 
+			dataPing={this.state.dataPing}
+			dataDownload={this.state.dataDownload} 
+			dataUpload={this.state.dataUpload} 
+			notifiche={this.state.notifiche}
+		/>}
       </div>
     );
   }
