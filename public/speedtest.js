@@ -18,7 +18,7 @@ var measureResultsContainer={
 var serverPorts = ["60100", "60101", "60102", "60103", "60104", "60105", "60106", "60107", "60108", "60109"];
 
 var useCustomTestServer = true;
-var customTestServerIP = ['192.168.1.5']; //Put here your custom IP
+var customTestServerIP = ['192.168.1.180']; //Put here your custom IP
 
 /*************Utility functions****************/
 function terminateWorker(){
@@ -228,7 +228,7 @@ function pingCodeWrapper(arrayOfHostNamesAndPorts, times, maxTimeout, nextFuncti
 			}
 		}
 	));
-
+	
 	pingTest(arrayOfHostNamesAndPorts, times, maxTimeout, nextFunction);
 }
 /**************End Ping code wrapper*************/
@@ -478,7 +478,6 @@ function uploadTest(host, bytesToUpload, numberOfStreams, timeout, threshold, ne
 			}
 
 			var url = 'http://' + host + '?r=' + Math.random();
-			var url2 = 'http://192.168.1.180:60100' + '?r=' + Math.random();
 			
 			var prevLoadedBytes=0;
 			var xhr = new XMLHttpRequest();
@@ -516,7 +515,6 @@ function uploadTest(host, bytesToUpload, numberOfStreams, timeout, threshold, ne
 			}
 
 			xhrArray[index].open('POST',url);
-			//xhrArray[index].setRequestHeader('Content-Encoding', 'identity');
 			xhrArray[index].send(testData);
 		},delay);
 	}
