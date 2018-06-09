@@ -18,7 +18,7 @@ class MisuraCorrente extends React.Component {
 			minMaxLabelStyle = {{fill: "#295877"}}
 		/>
         {(!this.props.isNeMeSysRunning && this.props.areMistTestServersAvailable) && 
-		<Pulsante onClick = {this.props.onClick}/>}
+		<Pulsante align = 'text-xs-center' buttonId = 'mistButton' onClick = {this.props.onClick} buttonColorClass = 'btn-outline-primary btn-lg' buttonCaption = 'START' />}
         <ContenitoreValoriMisuraCorrente 
 			packetsLost = {this.props.packetsLost}
 			pingValue = {this.props.pingValue} 

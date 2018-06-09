@@ -3,13 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "chartkick": "^2.3.5",
-    "highcharts": "^5.0.14",
+    "chartkick": "^2.3.6",
+    "highcharts": "^5.0.15",
     "jquery": "^3.3.1",
     "react": "^15.6.2",
     "react-chartkick": "^0.1.7",
     "react-dom": "^15.6.2",
     "react-scripts": "1.0.10",
+    "standard": "11.0.1",
     "ws": "^3.3.3"
   },
   "scripts": {
@@ -17,5 +18,9 @@
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
+  },
+  "devDependencies": {
+    "eslint": "^4.19.1",
+    "eslint-plugin-react": "^7.9.1"
   }
 }

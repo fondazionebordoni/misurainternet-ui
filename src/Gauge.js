@@ -5,67 +5,13 @@
 		-> https://github.com/Reggino/react-svg-gauge/blob/master/src/Gauge.js
 */
 
-import React, {Component} from 'react';
+import React from 'react';
 
-export default class Gauge extends Component {
-  static defaultProps = {
-    label: "React SVG Gauge",
-    min: 0,
-    max: 100,
-    value: 40,
-    width: 400,
-    height: 320,
-    color: '#fe0400',
-    backgroundColor: "#edebeb",
-    topLabelStyle: {
-      textAnchor: "middle",
-      fill: "#999999",
-      stroke: "none",
-      fontStyle: "normal",
-      fontVariant: "normal",
-      fontWeight: 'bold',
-      fontStretch: 'normal',
-      lineHeight: 'normal',
-      fillOpacity: 1
-    },
-    valueLabelStyle: {
-      textAnchor: "middle",
-      fill: "#010101",
-      stroke: "none",
-      fontStyle: "normal",
-      fontVariant: "normal",
-      fontWeight: 'bold',
-      fontStretch: 'normal',
-      lineHeight: 'normal',
-      fillOpacity: 1
-    },
-    unitLabelStyle: {
-      textAnchor: "middle",
-      fill: "#818a91",
-      stroke: "none",
-      fontStyle: "normal",
-      fontVariant: "normal",
-      fontWeight: 'lighter',
-      fontStretch: 'normal',
-      fontSize: 25,
-      lineHeight: 'normal',
-      fillOpacity: 1
-    },
-    minMaxLabelStyle: {
-      textAnchor: "middle",
-      fill: "#999999",
-      stroke: "none",
-      fontStyle: "normal",
-      fontVariant: "normal",
-      fontWeight: 'normal',
-      fontStretch: 'normal',
-      fontSize: 20,
-      lineHeight: 'normal',
-      fillOpacity: 1
-    }
-  };
+class Gauge extends React.Component {
 
-  _getPathValues = (value) => {
+
+
+  _getPathValues(value) {
     if (value < this.props.min)
       value = this.props.min;
     if (value > this.props.max)
@@ -73,7 +19,7 @@ export default class Gauge extends Component {
 
     var dx = 0;
     var dy = 0;
-    var gws = 1;
+    //var gws = 1;
 
     var alpha = (1 - (value - this.props.min) / (this.props.max - this.props.min)) * Math.PI;
     var Ro = this.props.width / 2 - this.props.width / 10;
@@ -100,13 +46,13 @@ export default class Gauge extends Component {
     };
   };
 
-  _getPath = (value) => {
-    var dx = 0;
-    var dy = 0;
-    var gws = 1;
+  _getPath(value) {
+    //var dx = 0;
+    //var dy = 0;
+    //var gws = 1;
 
     var {
-      alpha,
+      //alpha,
       Ro,
       Ri,
       Cx,
@@ -192,3 +138,62 @@ export default class Gauge extends Component {
     );
   }
 }
+
+Gauge.defaultProps = {
+    label: "React SVG Gauge",
+    min: 0,
+    max: 100,
+    value: 40,
+    width: 400,
+    height: 320,
+    color: '#fe0400',
+    backgroundColor: "#edebeb",
+    topLabelStyle: {
+      textAnchor: "middle",
+      fill: "#999999",
+      stroke: "none",
+      fontStyle: "normal",
+      fontVariant: "normal",
+      fontWeight: 'bold',
+      fontStretch: 'normal',
+      lineHeight: 'normal',
+      fillOpacity: 1
+    },
+    valueLabelStyle: {
+      textAnchor: "middle",
+      fill: "#010101",
+      stroke: "none",
+      fontStyle: "normal",
+      fontVariant: "normal",
+      fontWeight: 'bold',
+      fontStretch: 'normal',
+      lineHeight: 'normal',
+      fillOpacity: 1
+    },
+    unitLabelStyle: {
+      textAnchor: "middle",
+      fill: "#818a91",
+      stroke: "none",
+      fontStyle: "normal",
+      fontVariant: "normal",
+      fontWeight: 'lighter',
+      fontStretch: 'normal',
+      fontSize: 25,
+      lineHeight: 'normal',
+      fillOpacity: 1
+    },
+    minMaxLabelStyle: {
+      textAnchor: "middle",
+      fill: "#999999",
+      stroke: "none",
+      fontStyle: "normal",
+      fontVariant: "normal",
+      fontWeight: 'normal',
+      fontStretch: 'normal',
+      fontSize: 20,
+      lineHeight: 'normal',
+      fillOpacity: 1
+    }
+  };
+
+export default Gauge

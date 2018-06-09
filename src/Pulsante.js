@@ -1,5 +1,22 @@
 import React from 'react';
 
+class Pulsante extends React.Component {
+  render() {
+    return (
+      <div className = {this.props.align}>
+        <button
+          id={this.props.buttonId}
+          className={this.props.buttonColorClass + ' btn pr-3 pl-3'}
+          style={{borderRadius: 3}}
+          onClick={this.props.onClick}>
+            {this.props.buttonCaption}
+        </button>
+      </div>
+    )
+  }
+}
+
+/*
 const Pulsante = (props) => {
   return (
     <div className="text-xs-center">
@@ -13,5 +30,6 @@ const Pulsante = (props) => {
     </div>
   )
 }
+*/
 
 export default Pulsante;
