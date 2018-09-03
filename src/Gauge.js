@@ -11,7 +11,7 @@ export default class Gauge extends Component {
   static defaultProps = {
     label: "React SVG Gauge",
     min: 0,
-    max: 100,
+    max: 1000,
     value: 40,
     width: 400,
     height: 320,

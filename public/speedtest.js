@@ -18,7 +18,7 @@ var measureResultsContainer={
 var serverPorts = ["60100", "60101", "60102", "60103", "60104", "60105", "60106", "60107", "60108", "60109"];
 
 var useCustomTestServer = true;
-var customTestServerIP = ['192.168.1.180']; //Put here your custom IP
+var customTestServerIP = ['192.168.1.156']; //Put here your custom IP
 
 /*************Utility functions****************/
 function terminateWorker(){
