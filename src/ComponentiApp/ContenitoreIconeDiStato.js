@@ -1,5 +1,5 @@
 import React from 'react';
-import IconaStatoSistema from './IconaStatoSistema';
+import IconaStatoSistema from './ComponentiContenitoreIconeDiStato/IconaStatoSistema';
 
 class ContenitoreIconeDiStato extends React.Component {
   render() {

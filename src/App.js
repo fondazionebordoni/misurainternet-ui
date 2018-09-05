@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
-import Intestazione from './Intestazione';
-import MisuraCorrente from './MisuraCorrente';
-import Riepilogo from './Riepilogo';
-import Notifica from './Notifica'
-import ContenitoreIconeDiStato from './ContenitoreIconeDiStato';
+import Intestazione from './ComponentiApp/Intestazione';
+import MisuraCorrente from './ComponentiApp/MisuraCorrente';
+import Riepilogo from './ComponentiApp/Riepilogo';
+import Notifica from './ComponentiApp/Notifica'
+import ContenitoreIconeDiStato from './ComponentiApp/ContenitoreIconeDiStato';
 import $ from 'jquery';
 
 //se non si collega a nemesis all'avvio faccio partire mist.

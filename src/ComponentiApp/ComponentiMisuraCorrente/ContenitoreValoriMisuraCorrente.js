@@ -1,5 +1,5 @@
 import React from 'react';
-import ValoreMisuraCorrente from './ValoreMisuraCorrente'
+import ValoreMisuraCorrente from './ComponentiContenitoreValoriMisuraCorrente/ValoreMisuraCorrente'
 
 class ContenitoreValoriMisuraCorrente extends React.Component {
   render() {

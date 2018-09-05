@@ -1,7 +1,7 @@
 import React from 'react';
-import Pulsante from './Pulsante';
-import Gauge from './Gauge';
-import ContenitoreValoriMisuraCorrente from './ContenitoreValoriMisuraCorrente';
+import Pulsante from './ComponentiMisuraCorrente/Pulsante';
+import Gauge from './ComponentiMisuraCorrente/Gauge';
+import ContenitoreValoriMisuraCorrente from './ComponentiMisuraCorrente/ContenitoreValoriMisuraCorrente';
 
 class MisuraCorrente extends React.Component {
   render() {

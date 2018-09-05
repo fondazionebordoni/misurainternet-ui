@@ -1,5 +1,5 @@
 import React from 'react';
-import Grafico from './Grafico';
+import Grafico from './ComponentiGrafici/Grafico';
 
 class Grafici extends React.Component {
   render() {

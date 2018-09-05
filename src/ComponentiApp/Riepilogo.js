@@ -1,7 +1,7 @@
 import React from 'react';
-import Grafici from './Grafici';
-import InfoRiepilogo from './InfoRiepilogo';
-import TabellaNotifiche from './TabellaNotifiche';
+import Grafici from './ComponentiRiepilogo/Grafici';
+import InfoRiepilogo from './ComponentiRiepilogo/InfoRiepilogo';
+import TabellaNotifiche from './ComponentiRiepilogo/TabellaNotifiche';
 
 class Riepilogo extends React.Component {
   render() {
