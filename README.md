@@ -12,7 +12,6 @@ Attualmente è in sviluppo una versione web utilizzabile via browser.
 - [Server](#Server)
 - [English instructions](#English-instructions)
 
-
 ## Funzionalità
 
 MisuraInternet Speedtest offre un'interfaccia in cui è possibile interagire con
@@ -24,7 +23,6 @@ La funzionalità principale dell'applicazione è quella di testare la connession
 Per maggiori informazioni sul software Nemesys, andare sul sito [misurainternet](https://www.misurainternet.it/).
 Per il repository andate su [git nemesys](https://github.com/fondazionebordoni/nemesys).
 
-
 ## Informazioni tecniche
 
 Questo progetto contiene un Web Server realizzato con l'ausilio di [Node.js](https://nodejs.org/it/) e [npm](https://www.npmjs.com/).
@@ -35,13 +33,11 @@ L'interfaccia è realizzata in [React](https://reactjs.org/).
 L'utilizzo della versione web di MisuraInternet Speedtest sulla propria macchina è inteso a fini di sviluppo e di testing. 
 L'applicazione desktop rilasciata in versione definitiva è in esecuzione ed è disponibile sul sito misurainternet.it. 
 
-
 ## Requisiti
 
 * Installare/aggiornare Git all'ultima versione disponibile. Necessario per scaricare e gestire il codice del progetto.
 * Installare/aggiornare Node.js all'ultima versione LTS disponibile.
 * Aggiornare npm all'ultima versione disponibile. Necessario per l'esecuzione dell'applicazione.
-
 
 ## Istruzioni
 
@@ -58,7 +54,6 @@ Adesso sarà possibile eseguire il web server, effettuando i seguenti passaggi:
 >Note: il web server renderà disponibile l'applicaizone sulla porta 3000.
 >Per accedervi da qualsiasi browser, digitare nella barra degli indirizzi `localhost:3000`.
 
-
 ## Server
 
 >Note: Questa applicazione non è in grado di effettuare i test autonomamente.
@@ -69,10 +64,9 @@ Con i browser più comuni può essere fatto facilmente tramite una estensione di
 
 In alternativa è possibile scaricare un server di test dal repository [misurainternet-speedtest](https://github.com/fondazionebordoni/misurainternet-speedtest).
 In questo modo si possono effettuare i test su una rete locale.
-Per configurare tale server consultare il suo file README.md
+Per configurare tale server consultare il suo file `README.md`.
 
-
-# English instructions
+## English instructions
 
 Requirements:
 - Git installed
@@ -80,25 +74,27 @@ Requirements:
 
 Instructions for setting up development environment on your machine:
 
-1- Use Git to clone the project from GitHub. Launch "git clone https://github.com/fondazionebordoni/misurainternet-ui.git"
-2- From the terminal, navigate to the cloned project root directory "misurainternet-ui"
-3- Enter the command "npm install" and wait for it downloading all packages
+- Use Git to clone the project from GitHub. Launch `git clone https://github.com/fondazionebordoni/misurainternet-ui.git`
+- From the terminal, navigate to the cloned project root directory `misurainternet-ui`
+- Enter the command `npm install` and wait for it downloading all packages
 
 Instructions for launch the application:
-1- From the terminal, navigate to the project root directory
-5- Use the command "npm start". It will open your default web browser with the page of application
+- From the terminal, navigate to the project root directory
+- Use the command `npm start`. It will open your default web browser with the page of application
 
 note: the application will be available to any browser on you machine.
-Type "localhost:3000" in the address bar to open it.
+Type `localhost:3000` in the address bar to open it.
 
-This is not a standalone application. This web app contains only the client side part of the speedtest.
-This application is intendend for debugging and testing purposes only.
-If you want to perform a speedtest in your local network, you can download the test server on GitHub: https://github.com/fondazionebordoni/misurainternet-speedtest
-You must configure this application to use a local server. Open the file public/speedtest.js and edit lines 20 and 21.
+>Note: This is not a standalone application. This web app contains only the client side part >of the speedtest.
 
+If you want to use MisuraInternet's online servers, you need to enable CORS on the browser you are using.
+With the most common browsers it can easily be done via a third-party extension.
 
+Alternatively, you can download a test server from the repository [misurainternet-speedtest](https://github.com/fondazionebordoni/misurainternet-speedtest).
+In this way tests can be performed on a local network.
+To configure this server, refer to its `README.md` file.
 
-
+### About this project
 
 This project was bootstrapped with [Create React App](https://github.com/facebookincubator/create-react-app).
 
