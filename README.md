@@ -6,11 +6,11 @@ Attualmente è in sviluppo una versione web utilizzabile via browser.
 ## Table of Contents
 
 - [Funzionalità](#Funzionalità)
-- [Informazioni tecniche](#Informazioni tecniche)
+- [Informazioni tecniche](#Informazioni-tecniche)
 - [Requisiti](#Requisiti)
 - [Istruzioni](#Istruzioni)
 - [Server](#Server)
-- [English instructions](#English instructions)
+- [English instructions](#English-instructions)
 
 
 ## Funzionalità
