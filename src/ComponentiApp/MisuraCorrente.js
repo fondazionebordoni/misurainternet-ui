@@ -11,9 +11,9 @@ class MisuraCorrente extends React.Component {
           fill: "#295877"
         }} minMaxLabelStyle={{
           fill: "#295877"
-        }}/>
-        { (!this.props.isNeMeSysRunning && this.props.areMistTestServersAvailable) && <Pulsante onClick={this.props.onClick}/>}
-        <ContenitoreValoriMisuraCorrente pingValue={this.props.pingValue} downloadValue={this.props.downloadValue} uploadValue={this.props.uploadValue}/>
+        }} />
+        {(!this.props.isNeMeSysRunning && this.props.areMistTestServersAvailable) && <Pulsante onClick={this.props.onClick} />}
+        <ContenitoreValoriMisuraCorrente pingValue={this.props.pingValue} downloadValue={this.props.downloadValue} uploadValue={this.props.uploadValue} />
       </div>
     );
   }

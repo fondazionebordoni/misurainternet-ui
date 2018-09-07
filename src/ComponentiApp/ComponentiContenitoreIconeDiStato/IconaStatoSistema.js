@@ -24,21 +24,3 @@ class IconaStatoSistema extends React.Component {
 }
 
 export default IconaStatoSistema;
-
-/*<div className="card card-inverse card-success col-sm-3 ">
-    <large
-      style={{fontWeight: "lighter"}}>
-      {" " +this.props.type + this.props.stato}
-    </large>
-      <i
-        className={"fa " + this.props.iconaStato}
-        style={
-          {
-            marginLeft: 7
-          }
-        }
-        aria-hidden="true">
-      </i>
-
-</div>
-*/

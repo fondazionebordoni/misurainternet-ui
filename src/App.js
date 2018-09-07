@@ -6,11 +6,11 @@ import Notifica from './ComponentiApp/Notifica'
 import ContenitoreIconeDiStato from './ComponentiApp/ContenitoreIconeDiStato';
 import $ from 'jquery';
 
-//se non si collega a nemesis all'avvio faccio partire mist.
+// if Nemesys does not connect at startup, then MIST Web starts
 
 var listelements = [];
-var count = 0;  //Aggiunta mia
-var stringResult = ""; //Aggiunta mia
+var count = 0;
+var stringResult = "";
 
 class App extends Component {
   constructor(props) {
@@ -104,9 +104,9 @@ class App extends Component {
       $.ajax(ajax_sendMISTMeasures_settings);
     }
 
-    count++;                             //Aggiunta mia
+    count++;
     console.log(count);
-    if (count < 1) {
+    if (count < 1) {  // if you want to do TOT tests in a row change the number of condition in TOT
       setTimeout(this.handleClick(), 6000);
     } else console.log(stringResult);
     this.displayEndView();
@@ -170,7 +170,7 @@ class App extends Component {
     }.bind(this)
 
     ws.onclose = function (event) {
-      /*Se la chiusura del websocket è causata da un errore allora viene eseguito MIST*/
+      // If the closure of the websocket is caused by an error then MIST is executed
       if (event.code !== 1000) {
         this.handleWebSocketErrors();
       }
@@ -178,7 +178,6 @@ class App extends Component {
   }
 
   readMessage(msg) {
-
     switch (msg.type) {
       case "sys_resource":
         this.sysResource(msg.content.resource, msg.content.state, msg.content.info);
@@ -606,24 +605,4 @@ class App extends Component {
   }
 }
 
-
 export default App;
-
-/*
-
-//Render di Test:
-
-  render() {
-    return (
-      <div>
-        <Intestazione hdr={this.state.hdr} licenceInfo={this.state.licenceInfo} par={this.state.par}/>
-        <ContenitoreIconeDiStato statoEthernet={this.state.statoEthernet} statoCpu={this.state.statoCpu} statoRam={this.state.statoRam} statoWifi={this.state.statoWifi} cardEthernet={this.state.cardEthernet} cardCpu={this.state.cardCpu} cardRam={this.state.cardRam} cardWifi={this.state.cardWifi}/>
-        <MisuraCorrente onClick={this.handleClick} isNeMeSysRunning={this.state.isNeMeSysRunning} value={this.state.valore} unitMeasure={this.state.unitMeasure} gaugeColor={this.state.gaugeColor} pingValue={this.state.pingValue} downloadValue={this.state.downloadValue} uploadValue={this.state.uploadValue}/>
-        <Riepilogo misCorrenti={2} dataPing={[ [1.0, 100.0], [2.0, 60.0]]} dataDownload={[ [1.0, 100.0], [2.0, 60.0]]} dataUpload={[ [1.0, 100.0], [2.0, 60.0]]} notifiche={this.state.notifiche}/>
-      </div>
-    );
-  }
-}
-
-export default App;
-*/

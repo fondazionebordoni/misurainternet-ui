@@ -1,5 +1,5 @@
 import React from 'react';
-import {ColumnChart} from 'react-chartkick';
+import { ColumnChart } from 'react-chartkick';
 window.Highcharts = require('highcharts');
 
 class Grafico extends React.Component {
@@ -13,7 +13,7 @@ class Grafico extends React.Component {
           title: {
             text: this.props.titolo
           }
-        }} xtitle={this.props.xtitle} ytitle={this.props.ytitle} label={this.props.label} data={this.props.data} colors={this.props.colors}/>
+        }} xtitle={this.props.xtitle} ytitle={this.props.ytitle} label={this.props.label} data={this.props.data} colors={this.props.colors} />
       </div>
     )
 
