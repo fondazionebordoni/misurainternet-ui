@@ -9,7 +9,7 @@
     "react": "^15.6.2",
     "react-chartkick": "^0.1.7",
     "react-dom": "^15.6.2",
-    "react-scripts": "1.0.10",
+    "react-scripts": "1.1.5",
     "ws": "^3.3.3"
   },
   "scripts": {

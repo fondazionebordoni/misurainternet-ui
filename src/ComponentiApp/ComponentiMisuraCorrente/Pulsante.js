@@ -6,9 +6,9 @@ const Pulsante = (props) => {
       <button
         id='mistButton'
         className="btn btn-outline-primary btn-lg pr-3 pl-3"
-        style={{borderRadius: 3}}
+        style={{ borderRadius: 3 }}
         onClick={props.onClick}>
-          START
+        START
       </button>
     </div>
   )

@@ -5,13 +5,13 @@
 		-> https://github.com/Reggino/react-svg-gauge/blob/master/src/Gauge.js
 */
 
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 
 export default class Gauge extends Component {
   static defaultProps = {
     label: "React SVG Gauge",
     min: 0,
-    max: 100,
+    max: 1000,
     value: 40,
     width: 400,
     height: 320,
@@ -73,7 +73,6 @@ export default class Gauge extends Component {
 
     var dx = 0;
     var dy = 0;
-    var gws = 1;
 
     var alpha = (1 - (value - this.props.min) / (this.props.max - this.props.min)) * Math.PI;
     var Ro = this.props.width / 2 - this.props.width / 10;
@@ -101,12 +100,8 @@ export default class Gauge extends Component {
   };
 
   _getPath = (value) => {
-    var dx = 0;
-    var dy = 0;
-    var gws = 1;
 
     var {
-      alpha,
       Ro,
       Ri,
       Cx,
@@ -123,8 +118,6 @@ export default class Gauge extends Component {
     path += "L" + Xi + "," + Yi + " ";
     path += "A" + Ri + "," + Ri + " 0 0 0 " + (Cx - Ri) + "," + Cy + " ";
     path += "Z ";
-
-    //console.log(path);
 
     return path;
   };
@@ -162,16 +155,16 @@ export default class Gauge extends Component {
         }}>
           <defs>
             <filter id="g3-inner-shadow">
-              <feOffset dx="0" dy="3"/>
-              <feGaussianBlur result="offset-blur" stdDeviation="5"/>
-              <feComposite operator="out" in="SourceGraphic" in2="offset-blur" result="inverse"/>
-              <feFlood floodColor="black" floodOpacity="0.2" result="color"/>
-              <feComposite operator="in" in="color" in2="inverse" result="shadow"/>
-              <feComposite operator="over" in="shadow" in2="SourceGraphic"/>
+              <feOffset dx="0" dy="3" />
+              <feGaussianBlur result="offset-blur" stdDeviation="5" />
+              <feComposite operator="out" in="SourceGraphic" in2="offset-blur" result="inverse" />
+              <feFlood floodColor="black" floodOpacity="0.2" result="color" />
+              <feComposite operator="in" in="color" in2="inverse" result="shadow" />
+              <feComposite operator="over" in="shadow" in2="SourceGraphic" />
             </filter>
           </defs>
-          <path fill={this.props.backgroundColor} stroke="none" d={this._getPath(this.props.max)} filter="url(#g3-inner-shadow)"/>
-          <path fill={this.props.color} stroke="none" d={this._getPath(this.props.value)} filter="url(#g3-inner-shadow)"/>
+          <path fill={this.props.backgroundColor} stroke="none" d={this._getPath(this.props.max)} filter="url(#g3-inner-shadow)" />
+          <path fill={this.props.color} stroke="none" d={this._getPath(this.props.value)} filter="url(#g3-inner-shadow)" />
           <text x={this.props.width / 2} y={this.props.height / 8} textAnchor="middle" style={topLabelStyle}>
             {this.props.label}
           </text>
