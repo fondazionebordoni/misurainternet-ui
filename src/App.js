@@ -209,7 +209,7 @@ class App extends Component {
       case "test":
         this.displayTestN(msg.content.n_test, msg.content.n_tot, msg.content.retry);
         break;
-      case "speedtest": //MIST ha terminato di effettuare le misure
+      case "speedtest": //MIST has finished making measurements
         this.handleMISTResults(msg);
         break;
       default:
@@ -235,7 +235,7 @@ class App extends Component {
     );
 
     if (listelements.length > 10) {
-      listelements.splice(0, 1); //limito a 10 la lista di notifiche mostrate nella pagina
+      listelements.splice(0, 1);  // limits to 10 the list of notifications shown on the page
     }
     this.setState({ notifiche: listelements.reverse() });
   }
@@ -402,10 +402,10 @@ class App extends Component {
   }
 
   displayWaitView(serial, message, seconds) {
-    //MIST:
-    //on error->
-    //in modalità speed test, l' utente può tornare in modalità nemesys ricaricando la pagina
-    //richiedere il seriale
+    // MIST:
+    // on error->
+    // in speed test mode, the user can return to nemesys mode by reloading the page
+    // request the serial number
     if (this.state.isNeMeSysRunning) {
       this.setState({ hdr: "Nemesys è in attesa di effettuare una nuova misura." });
       this.setState({ par: message })
@@ -417,8 +417,8 @@ class App extends Component {
 
 
     if (serial && serial.length > 0) {
-      //se non ho il seriale, nascondo i componenti dei Grafici
-      //in caso di errore fai sparire la parte sotto MisuraCorrente
+      // if it doesn't have the serial, hides the components of the Charts
+      // in case of an error, makes the part under Current Measure disappear
 
       this.setState({
         dataPing: "https://www.misurainternet.it/get_client_detail/?serial=" + serial + "&type=ping"
@@ -527,7 +527,7 @@ class App extends Component {
           </p>
         });
         break;
-      case 1234: //Errore connessione websocket
+      case 1234:  // Error websocket connection
         document.getElementById("titolo").innerHTML = "MisuraInternet Speedtest";
         this.setState({
           hdr: 'MisuraInternet Speedtest',
@@ -541,7 +541,7 @@ class App extends Component {
         });
         this.resetMeasureResults();
         break;
-      case 1235: //Errore nell'esecuzione del test di ping in MIST
+      case 1235:  // Error executing ping test on MIST
         this.setState({
           hdr: 'MisuraInternet Speedtest - Errore',
           par: <p>
@@ -552,7 +552,7 @@ class App extends Component {
         this.resetMeasureResults();
         $("#mistButton").removeAttr("disabled");
         break;
-      case 1236: //Errore nell'esecuzione del test di download in MIST
+      case 1236:  // Error executing download test on MIST
         this.setState({
           hdr: 'MisuraInternet Speedtest - Errore',
           par: <p>
@@ -563,7 +563,7 @@ class App extends Component {
         this.resetMeasureResults();
         $("#mistButton").removeAttr("disabled");
         break;
-      case 1237: //Errore nell'esecuzione del test di upload in MIST
+      case 1237:  // Error executing upload test on MIST
         this.setState({
           hdr: 'MisuraInternet Speedtest - Errore',
           par: <p>
@@ -574,7 +574,7 @@ class App extends Component {
         this.resetMeasureResults();
         $("#mistButton").removeAttr("disabled");
         break;
-      case 1238: //Errore che viene notificato quando, durante il test di download e upload, la prequalifica restituisce sempre zero (assenza di connessione)
+      case 1238:  // Error that is notified when, during the download and upload test, the prequalification always returns zero (no connection)
         this.setState({
           hdr: 'MisuraInternet Speedtest - Errore',
           par: <p>
