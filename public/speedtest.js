@@ -655,15 +655,7 @@ function startSpeedtest(arrayOfServers) {
 	var downloadTestThreshold = 0.10;
 	var uploadTestThreshold = 0.10;
 
-	pingCodeWrapper(arrayOfServers, timesToPing, pingMaxTimeout,
-		function () {
-			downloadTest(measureResultsContainer.server, bytesToDownload, numberOfDownloadStreams, downloadTestTimeout, downloadTestThreshold,
-				function () {
-					uploadTest(measureResultsContainer.server, bytesToUpload, numberOfUploadStreams, uploadTestTimeout, uploadTestThreshold, terminateWorker);
-				}
-			)
-		}
-	);
+	pingCodeWrapper(arrayOfServers, timesToPing, pingMaxTimeout, terminateWorker);
 }
 
 /** Worker listener */

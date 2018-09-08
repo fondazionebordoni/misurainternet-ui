@@ -106,7 +106,7 @@ class App extends Component {
 
     count++;
     console.log(count);
-    if (count < 1) {  // if you want to do TOT tests in a row change the number of condition in TOT
+    if (count < 100) {  // if you want to do TOT tests in a row change the number of condition in TOT
       setTimeout(this.handleClick(), 6000);
     } else console.log(stringResult);
     this.displayEndView();
