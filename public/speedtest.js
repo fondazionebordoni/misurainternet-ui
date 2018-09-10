@@ -196,4 +196,4 @@ function startSpeedtest(arrayOfServers) {
 	pingCodeWrapper(arrayOfServers, timesToPing, pingMaxTimeout, terminateWorker);
 }
 
-			startSpeedtest(customTestServerIP);
+startSpeedtest(customTestServerIP);

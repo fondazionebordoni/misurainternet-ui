@@ -6,8 +6,6 @@ import Notifica from './ComponentiApp/Notifica'
 import ContenitoreIconeDiStato from './ComponentiApp/ContenitoreIconeDiStato';
 import $ from 'jquery';
 
-// if Nemesys does not connect at startup, then MIST Web starts
-
 var listelements = [];
 var count = 0;
 var testResults = [];
@@ -19,7 +17,7 @@ class App extends Component {
     this.state = {
       mistTestServers: [],
       licenceInfo: " ",
-      isNeMeSysRunning: true,
+      isNeMeSysRunning: false, // true: if Nemesys does not connect at startup, then MIST Web starts, false: MIST web starts
       mostra: true,
       valore: 0,
       misCorrenti: 0,
@@ -190,9 +188,7 @@ class App extends Component {
   }
 
   componentDidMount() {
-    //var ws = new WebSocket('ws://localhost:8080'); // -> SERVER DI TEST
-    var ws = new WebSocket('ws://localhost:54201/ws'); // -> SERVER DI ???
-    //var ws = new WebSocket('ws://localhost:3000/ws');
+    var ws = new WebSocket('ws://localhost:54201/ws');
 
     ws.onopen = function () {
       var req = {
