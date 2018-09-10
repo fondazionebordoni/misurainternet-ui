@@ -10,7 +10,7 @@ import $ from 'jquery';
 
 var listelements = [];
 var count = 0;
-var stringResult = "";
+var testResults = [];
 
 class App extends Component {
   constructor(props) {
@@ -86,6 +86,38 @@ class App extends Component {
     }.bind(this)
   }
 
+  pingMin = function (arrayResult) {
+    var minMeasure = arrayResult[0];
+    for (var i=1; i<arrayResult.length; i++) {
+      var measure = arrayResult[i];
+      if (measure < minMeasure) minMeasure = measure;
+    }
+    return minMeasure;
+  }
+
+  pingMax = function (arrayResult) {
+    var maxMeasure = arrayResult[0];
+    for (var i=1; i<arrayResult.length; i++) {
+      var measure = arrayResult[i];
+      if (measure > maxMeasure) maxMeasure = measure;
+    }
+    return maxMeasure;
+  }
+
+  pingAvg = function (arrayResult) {
+    var sumOfLatencies = 0;
+    for (var i in arrayResult) sumOfLatencies = sumOfLatencies + arrayResult[i];
+    var pingAvgValue = sumOfLatencies / arrayResult.length;
+    return pingAvgValue;
+  }
+
+  pingJitter = function (avg, min, max) {
+    var negJit = avg - min;
+    var posJit = max - avg;
+    var jitterMeasure = (negJit+posJit)/2;
+    return jitterMeasure;
+  }
+
   handleMISTResults(measureResults) {
     measureResults = { measure: measureResults };
     if (this.mistClientId && this.mistClientId.length > 0) {
@@ -103,12 +135,18 @@ class App extends Component {
       }
       $.ajax(ajax_sendMISTMeasures_settings);
     }
-
-    count++;
-    console.log(count);
-    if (count < 100) {  // if you want to do TOT tests in a row change the number of condition in TOT
+    if (count < 200) {  // if you want to do TOT tests in a row change the number of condition in TOT
       setTimeout(this.handleClick(), 6000);
-    } else console.log(stringResult);
+    } else {
+      var pingAvgValue = this.pingAvg(testResults);
+      var pingMinValue = this.pingMin(testResults);
+      var pingMaxValue = this.pingMax(testResults);
+      var pingJitterValue = this.pingJitter(pingAvgValue, pingMinValue, pingMaxValue);
+      console.log("Valore latenza medio: " + pingAvgValue.toFixed(2) + " ms");
+      console.log("Valore latenza minimo: " + pingMinValue.toFixed(2) + " ms");
+      console.log("Valore latenza massimo: " + pingMaxValue.toFixed(2) + " ms");
+      console.log("Valore jitter: " + pingJitterValue.toFixed(2) + " ms");
+    }
     this.displayEndView();
   }
 
@@ -247,43 +285,15 @@ class App extends Component {
         par: "Test di " + test_type + " fallito: " + error + ". Nuovo tentativo fra pochi secondi..."
       });
     } else {
-      switch (test_type) {
-        case "ping":
-          {
-            this.setState({
-              par: "Valore misurato: " + result.toFixed(2) + " ms"
-            });
-            this.setState({ pingValue: result.toFixed(2) });
-            stringResult = stringResult.concat(result.toFixed(2) + "\t");
-            console.log(result.toFixed(2));
-            break;
-          }
-        case "upload":
-          {
-            this.setState({
-              par: "Valore misurato: " + (result / 1000).toFixed(2) + " Mbit/s"
-            });
-            this.setState({
-              uploadValue: (result / 1000).toFixed(2)
-            });
-            stringResult = stringResult.concat((result / 1000).toFixed(2) + "\n");
-            console.log((result / 1000).toFixed(2));
-            break;
-          }
-        case "download":
-          {
-            this.setState({
-              par: "Valore misurato: " + (result / 1000).toFixed(2) + " Mbit/s"
-            });
-            this.setState({
-              downloadValue: (result / 1000).toFixed(2)
-            });
-            stringResult = stringResult.concat((result / 1000).toFixed(2) + "\t");
-            console.log((result / 1000).toFixed(2));
-            break;
-          }
-        default: { }
-      }
+      this.setState({
+        par: "Valore misurato: " + result.toFixed(2) + " ms"
+      });
+      this.setState({ pingValue: result.toFixed(2) });
+      testResults.push(result);
+      count++;
+      console.log("Test numero: " + count);
+      console.log("Latenza: " + result.toFixed(2) + " ms");
+      console.log("");
     }
   }
 
