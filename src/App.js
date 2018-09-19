@@ -7,7 +7,6 @@ import ContenitoreIconeDiStato from './ComponentiApp/ContenitoreIconeDiStato';
 import $ from 'jquery';
 
 var listelements = [];
-var count = 0;
 var testResults = [];
 
 class App extends Component {
@@ -84,38 +83,6 @@ class App extends Component {
     }.bind(this)
   }
 
-  pingMin = function (arrayResult) {
-    var minMeasure = arrayResult[0];
-    for (var i=1; i<arrayResult.length; i++) {
-      var measure = arrayResult[i];
-      if (measure < minMeasure) minMeasure = measure;
-    }
-    return minMeasure;
-  }
-
-  pingMax = function (arrayResult) {
-    var maxMeasure = arrayResult[0];
-    for (var i=1; i<arrayResult.length; i++) {
-      var measure = arrayResult[i];
-      if (measure > maxMeasure) maxMeasure = measure;
-    }
-    return maxMeasure;
-  }
-
-  pingAvg = function (arrayResult) {
-    var sumOfLatencies = 0;
-    for (var i in arrayResult) sumOfLatencies = sumOfLatencies + arrayResult[i];
-    var pingAvgValue = sumOfLatencies / arrayResult.length;
-    return pingAvgValue;
-  }
-
-  pingJitter = function (avg, min, max) {
-    var negJit = avg - min;
-    var posJit = max - avg;
-    var jitterMeasure = (negJit+posJit)/2;
-    return jitterMeasure;
-  }
-
   handleMISTResults(measureResults) {
     measureResults = { measure: measureResults };
     if (this.mistClientId && this.mistClientId.length > 0) {
@@ -132,18 +99,6 @@ class App extends Component {
         "data": jsonResultData,
       }
       $.ajax(ajax_sendMISTMeasures_settings);
-    }
-    if (count < 200) {  // if you want to do TOT tests in a row change the number of condition in TOT
-      setTimeout(this.handleClick(), 6000);
-    } else {
-      var pingAvgValue = this.pingAvg(testResults);
-      var pingMinValue = this.pingMin(testResults);
-      var pingMaxValue = this.pingMax(testResults);
-      var pingJitterValue = this.pingJitter(pingAvgValue, pingMinValue, pingMaxValue);
-      console.log("Valore latenza medio: " + pingAvgValue.toFixed(2) + " ms");
-      console.log("Valore latenza minimo: " + pingMinValue.toFixed(2) + " ms");
-      console.log("Valore latenza massimo: " + pingMaxValue.toFixed(2) + " ms");
-      console.log("Valore jitter: " + pingJitterValue.toFixed(2) + " ms");
     }
     this.displayEndView();
   }
@@ -286,10 +241,6 @@ class App extends Component {
       });
       this.setState({ pingValue: result.toFixed(2) });
       testResults.push(result);
-      count++;
-      console.log("Test numero: " + count);
-      console.log("Latenza: " + result.toFixed(2) + " ms");
-      console.log("");
     }
   }
 
