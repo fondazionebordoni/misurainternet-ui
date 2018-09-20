@@ -215,7 +215,7 @@ function pingCodeWrapper(host, times, maxTimeout, nextFunction) {
 				pingNuovaProva = pingNuovaProva * 0.9 + latency * 0.1;
 				currentMeasureResult[count].start = (new Date(t0)).toISOString();
 				currentMeasureResult[count].value = latency;
-				if (count > 0) prevLatency = currentMeasureResult[count-1].value;
+				if (count > 0) prevLatency = currentMeasureResult[count - 1].value;
 				var nuovoInstJitter = Math.abs(latency - prevLatency);
 				nuovoJitter = nuovoInstJitter > nuovoJitter ? (nuovoJitter * 0.2 + nuovoInstJitter * 0.8) : (nuovoJitter * 0.9 + nuovoInstJitter * 0.1)
 				count++;
@@ -223,29 +223,21 @@ function pingCodeWrapper(host, times, maxTimeout, nextFunction) {
 
 				if (count === times) {
 					var pingAvgValue = totalTime / count;
-
-					if (!measureResultsContainer.server) {
-						// Petrucci contents
-						var container, newContainer;
-						var divisor = 5;
-						container = createContainer(currentMeasureResult);
-						newContainer = createPingResults(container, divisor);
-						console.log("avg: " + pingAvg(newContainer));
-						console.log("min: " + pingMin(newContainer));
-						console.log("max: " + pingMax(newContainer));
-						console.log("jit: " + pingJit(newContainer));
-						console.log("pingNuovaProva: " + pingNuovaProva.toFixed(2));
-						console.log("nuovoJitter: " + nuovoJitter.toFixed(2));
-						// End Petrucci contents
-						measureResultsContainer.server = host;
-						latencyAvgValue = pingAvgValue;
-						measureResult = currentMeasureResult;
-					}
-					else if (latencyAvgValue && pingAvgValue < latencyAvgValue) {
-						measureResultsContainer.server = host;
-						latencyAvgValue = pingAvgValue;
-						measureResult = currentMeasureResult;
-					}
+					// Petrucci contents
+					var container, newContainer;
+					var divisor = 5;
+					container = createContainer(currentMeasureResult);
+					newContainer = createPingResults(container, divisor);
+					console.log("avg: " + pingAvg(newContainer));
+					console.log("min: " + pingMin(newContainer));
+					console.log("max: " + pingMax(newContainer));
+					console.log("jit: " + pingJit(newContainer));
+					console.log("pingNuovaProva: " + pingNuovaProva.toFixed(2));
+					console.log("nuovoJitter: " + nuovoJitter.toFixed(2));
+					// End Petrucci contents
+					measureResultsContainer.server = host;
+					latencyAvgValue = pingAvgValue;
+					measureResult = currentMeasureResult;
 					handleErrorsOrTimeoutsOrTestFinished();
 				} else sendPingMessage();	// the test is not finished yet, server in question still to be pinged
 			}
