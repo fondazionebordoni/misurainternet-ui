@@ -14,10 +14,8 @@ var measureResultsContainer = {
 	tests: [],
 };
 var serverPort = "60100";
-var customTestServerIP = ['192.168.1.156']; //Put here your custom IP
+var customTestServerIP = ['192.168.1.2']; //Put here your custom IP
 var pingNuovaProva = 0.0;
-var nuovoJitter = 0.0;
-var prevLatency = 0.0;
 
 /** Terminate the test */
 function terminateWorker() {
@@ -150,15 +148,6 @@ function pingCodeWrapper(host, times, maxTimeout, nextFunction) {
 			return nuovoContenitore;
 		}
 
-		var pingAvg = function (contenitore) {
-			var sum = 0;
-			length = contenitore.length;
-			for (var i in contenitore) {
-				sum += contenitore[i];
-			}
-			return (sum / length).toFixed(2);
-		}
-
 		var pingMin = function (contenitore) {
 			var minMeasure = contenitore[0];
 			for (var i = 1; i < contenitore.length; i++) {
@@ -179,13 +168,19 @@ function pingCodeWrapper(host, times, maxTimeout, nextFunction) {
 
 		var pingJit = function (contenitore) {
 			var prevLatency = 0;
+			var latency = 0.0;
 			var jitter = 0.0;
-			for (var i = 0; i < contenitore.length; i++) {
-				var latency = contenitore[i];
+			var a = 0;
+			var contenitoreJit = 0;
+			for (var i = 1; i < contenitore.length; i++) {
+				prevLatency = contenitore[i - 1]
+				latency = contenitore[i];
 				var instjitter = Math.abs(latency - prevLatency)
+				contenitoreJit += instjitter;
+				a++;
 				jitter = instjitter > jitter ? (jitter * 0.2 + instjitter * 0.8) : (jitter * 0.9 + instjitter * 0.1) // update jitter, weighted average. spikes in ping values are given more weight.
-				prevLatency = latency
 			}
+			console.log("jitMedia: " + (contenitoreJit / a).toFixed(2));
 			return jitter.toFixed(2);
 		}
 		/* End Petrucci Functions */
@@ -215,9 +210,6 @@ function pingCodeWrapper(host, times, maxTimeout, nextFunction) {
 				pingNuovaProva = pingNuovaProva * 0.9 + latency * 0.1;
 				currentMeasureResult[count].start = (new Date(t0)).toISOString();
 				currentMeasureResult[count].value = latency;
-				if (count > 0) prevLatency = currentMeasureResult[count - 1].value;
-				var nuovoInstJitter = Math.abs(latency - prevLatency);
-				nuovoJitter = nuovoInstJitter > nuovoJitter ? (nuovoJitter * 0.2 + nuovoInstJitter * 0.8) : (nuovoJitter * 0.9 + nuovoInstJitter * 0.1)
 				count++;
 				totalTime += latency;
 
@@ -228,12 +220,11 @@ function pingCodeWrapper(host, times, maxTimeout, nextFunction) {
 					var divisor = 5;
 					container = createContainer(currentMeasureResult);
 					newContainer = createPingResults(container, divisor);
-					console.log("avg: " + pingAvg(newContainer));
+					console.log("avg: " + pingAvgValue.toFixed(2));
 					console.log("min: " + pingMin(newContainer));
 					console.log("max: " + pingMax(newContainer));
 					console.log("jit: " + pingJit(newContainer));
 					console.log("pingNuovaProva: " + pingNuovaProva.toFixed(2));
-					console.log("nuovoJitter: " + nuovoJitter.toFixed(2));
 					// End Petrucci contents
 					measureResultsContainer.server = host;
 					latencyAvgValue = pingAvgValue;
@@ -260,7 +251,7 @@ function pingCodeWrapper(host, times, maxTimeout, nextFunction) {
 /** Speedtest */
 function startSpeedtest(server) {
 	measureResultsContainer.start = (new Date()).toISOString();
-	var timesToPing = 1000;
+	var timesToPing = 50;
 	var pingMaxTimeout = 1000000; //ms
 	pingCodeWrapper(server, timesToPing, pingMaxTimeout, terminateWorker);
 }
