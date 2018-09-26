@@ -15,7 +15,6 @@ var measureResultsContainer = {
 };
 var serverPort = "60100";
 var customTestServerIP = ['192.168.1.2']; //Put here your custom IP
-var pingNuovaProva = 0.0;
 
 /** Terminate the test */
 function terminateWorker() {
@@ -54,6 +53,7 @@ function closeAllConnections(arrayOfXhrs) {
 function pingCodeWrapper(host, times, maxTimeout, nextFunction) {
 	var latencyAvgValue;
 	var measureResult;
+	var pingNuovaProva = 0.0;
 
 	/** Ping multiple servers */
 	function pingTest(host, times, maxTimeout, nextFunction) {
@@ -170,17 +170,17 @@ function pingCodeWrapper(host, times, maxTimeout, nextFunction) {
 			var prevLatency = 0;
 			var latency = 0.0;
 			var jitter = 0.0;
-			var a = 0;
+			var total = 0;
 			var contenitoreJit = 0;
 			for (var i = 1; i < contenitore.length; i++) {
 				prevLatency = contenitore[i - 1]
 				latency = contenitore[i];
 				var instjitter = Math.abs(latency - prevLatency)
 				contenitoreJit += instjitter;
-				a++;
+				total++;
 				jitter = instjitter > jitter ? (jitter * 0.2 + instjitter * 0.8) : (jitter * 0.9 + instjitter * 0.1) // update jitter, weighted average. spikes in ping values are given more weight.
 			}
-			console.log("jitMedia: " + (contenitoreJit / a).toFixed(2));
+			console.log("jitMedia: " + (contenitoreJit / total).toFixed(2));
 			return jitter.toFixed(2);
 		}
 		/* End Petrucci Functions */
@@ -234,7 +234,6 @@ function pingCodeWrapper(host, times, maxTimeout, nextFunction) {
 			}
 		}
 	}
-	/* End ping multiple servers */
 
 	self.postMessage(JSON.stringify(
 		{
