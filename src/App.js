@@ -1,6 +1,7 @@
 import React from 'react';
 import Intestazione from './Intestazione';
 import MisuraCorrente from './MisuraCorrente';
+import PacketLossTest from './PacketLossTest';
 import NetNeutrality from './NetNeutrality';
 import Riepilogo from './Riepilogo';
 import Notifica from './Notifica';
@@ -96,10 +97,11 @@ class App extends React.Component {
 			servers: this.state.mistTestServers
 		};
 
-		//TODO Put speedtest.js in misurainternet-speedtest by using -> https://stackoverflow.com/questions/11211068/web-worker-loading-of-absolute-url
-		let worker = new Worker(process.env.PUBLIC_URL + 'speedtest.js');
-		//TODO Create a bundle with webpack/browserify to divide speedtest.js into different files, and reference the bundle here
-		//let worker = new Worker(process.env.PUBLIC_URL + 'bundle.js');
+		//TODO Put speedtest.js (bundle.js) in misurainternet-speedtest by using ->
+		//TODO -> https://stackoverflow.com/questions/11211068/web-worker-loading-of-absolute-url
+		
+		//Il file contiene il bundle di speedtest.js (effettuato con webpack), che richiede metodi da altri file dentro /public/js/
+		let worker = new Worker(process.env.PUBLIC_URL + '/build/bundle.js');
 
 		worker.postMessage(JSON.stringify(startMISTMsg));
 
@@ -124,7 +126,7 @@ class App extends React.Component {
 
 		xhr.send(null);
 	}
-*/
+	*/
 
 	handleMISTResults(measureResults) {
 		measureResults = {
@@ -779,6 +781,7 @@ class App extends React.Component {
 					downloadValue = {this.state.downloadValue} 
 					uploadValue = {this.state.uploadValue}
 				/>
+				<PacketLossTest/>
 				<NetNeutrality/>
 				{(this.state.isNeMeSysRunning || (this.state.dataPing && this.state.dataDownload && this.state.dataUpload)) && 
 				<Riepilogo 
