@@ -24,7 +24,8 @@ let measureResultsContainer = {
 const serverPorts = ['60100', '60101', '60102', '60103', '60104', '60105', '60106', '60107', '60108', '60109'];
 
 const useCustomTestServer = true;
-const customTestServerIP = ['localhost']; //Put here your custom IP
+const customTestServerIP = ['18.220.180.11'];
+//const customTestServerIP = ['localhost']; //Put here your custom IP
 
 workerListener();
 
@@ -118,7 +119,7 @@ function startSpeedtest(arrayOfServers) {
 					);
 				}
 			);
-		}
+		//}
 	//);
 }
 
