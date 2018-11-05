@@ -1,3 +1,7 @@
+# ATTENZIONE
+Questo è un branch di sperimentazione sul calcolo della qualità della banda dal quale è stato creato un branch di sperimentazione per il calcolo della latenza "testPing".
+Per non rendere vano il lavoro svolto dai vari tirocinanti, i miglioramenti effettuati su questi branch dovranno poi essere controllati e riportati nel branch "master".
+
 # misurainternet-ui
 
 MisuraInternet Speedtest è una applicazione desktop per verificare la prestazioni della propria rete autorizzata dall' [AGCOM](https://www.agcom.it/).
