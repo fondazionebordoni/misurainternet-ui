@@ -1,3 +1,7 @@
+Questo è un branch di sperimentazione sul calcolo della latenza.
+I miglioramenti effettuati su questo codice dovranno poi essere riportati nel branch "Testing" e a sua volta sul branch "master"
+
+
 # misurainternet-ui
 
 MisuraInternet Speedtest è una applicazione desktop per verificare la prestazioni della propria rete autorizzata dall' [AGCOM](https://www.agcom.it/).
