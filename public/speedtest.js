@@ -13,8 +13,9 @@ var measureResultsContainer = {
 	stop: null,
 	tests: [],
 };
+var begin;
 var serverPort = "60100";
-var customTestServerIP = ['192.168.1.2']; //Put here your custom IP
+var customTestServerIP = ['192.168.1.156']; //Put here your custom IP
 
 /** Terminate the test */
 function terminateWorker() {
@@ -53,7 +54,76 @@ function closeAllConnections(arrayOfXhrs) {
 function pingCodeWrapper(host, times, maxTimeout, nextFunction) {
 	var latencyAvgValue;
 	var measureResult;
-	var pingNuovaProva = 0.0;
+	var pingPerf;
+	var pingNuovaProva2 = 0.0;
+	var pingNuovaProva = 0.0;	// Current latency value
+	var jitNuovaProva = 0.0;	// Current jitter value
+	var prevLatency = 0;	// last latency time, used for jitter calculation
+
+	/* Petrucci functions */
+	var createContainer = function (contenitor) {
+		var container = [];
+		for (var i in contenitor) container.push(contenitor[i].value);
+		return container;
+	}
+
+	var createPingResults = function (contenitor, divisor) {
+		var contenitoreTemp = 0;
+		var nuovoContenitore = [];
+		var lunghezzaContenitore = contenitor.length;
+		var parti = lunghezzaContenitore / divisor;
+		var j = 0, k;
+
+		while (j < lunghezzaContenitore) {
+			for (var i = 0; i < parti; i++) {
+				for (k = 0; k < divisor; k++) {
+					contenitoreTemp += contenitor[j];
+					j++;
+				}
+				nuovoContenitore[i] = contenitoreTemp / k;
+				contenitoreTemp = 0;
+			}
+		}
+		return nuovoContenitore;
+	}
+
+	var pingMin = function (contenitore) {
+		var minMeasure = contenitore[0];
+		for (var i = 1; i < contenitore.length; i++) {
+			var measure = contenitore[i];
+			if (measure < minMeasure) minMeasure = measure;
+		}
+		return minMeasure.toFixed(2);
+	}
+
+	var pingMax = function (contenitore) {
+		var maxMeasure = contenitore[0];
+		for (var i = 1; i < contenitore.length; i++) {
+			var measure = contenitore[i];
+			if (measure > maxMeasure) maxMeasure = measure;
+		}
+		return maxMeasure.toFixed(2);
+	}
+
+	var pingJit = function (contenitore) {
+		var prevLatency = 0;
+		var latency = 0.0;
+		var jitter = 0.0;
+		var total = 0;
+		var contenitoreJit = 0;
+		for (var i = 1; i < contenitore.length; i++) {
+			prevLatency = contenitore[i - 1]
+			latency = contenitore[i];
+			var instjitter = Math.abs(latency - prevLatency)
+			contenitoreJit += instjitter;
+			total++;
+			jitter = instjitter > jitter ? (jitter * 0.2 + instjitter * 0.8) : (jitter * 0.9 + instjitter * 0.1) // update jitter, weighted average. spikes in ping values are given more weight.
+		}
+		console.log("jitMedia: " + (contenitoreJit / total).toFixed(2));
+		return jitter.toFixed(2);
+	}
+	/* End Petrucci Functions */
+
 
 	/** Ping multiple servers */
 	function pingTest(host, times, maxTimeout, nextFunction) {
@@ -72,6 +142,7 @@ function pingCodeWrapper(host, times, maxTimeout, nextFunction) {
 		var count = 0;
 		var totalTime = 0;
 		var t0 = 0;
+		var t00;
 		var timeout;
 		var timeoutEventFired = false;
 		var ws = new WebSocket('ws://' + hostNameAndPort);
@@ -107,6 +178,7 @@ function pingCodeWrapper(host, times, maxTimeout, nextFunction) {
 		/** send, via websocket, empty strings */
 		var sendPingMessage = function () {
 			t0 = Date.now();
+			t00 = performance.now();
 			ws.send('');
 			timeout = setTimeout(function () {
 				timeoutEventFired = true;
@@ -121,77 +193,17 @@ function pingCodeWrapper(host, times, maxTimeout, nextFunction) {
 			}
 		}, 2000);
 
-		/* Petrucci functions */
-		var createContainer = function (contenitor) {
-			var container = [];
-			for (var i in contenitor) container.push(contenitor[i].value);
-			return container;
-		}
 
-		var createPingResults = function (contenitor, divisor) {
-			var contenitoreTemp = 0;
-			var nuovoContenitore = [];
-			var lunghezzaContenitore = contenitor.length;
-			var parti = lunghezzaContenitore / divisor;
-			var j = 0, k;
-
-			while (j < lunghezzaContenitore) {
-				for (var i = 0; i < parti; i++) {
-					for (k = 0; k < divisor; k++) {
-						contenitoreTemp += contenitor[j];
-						j++;
-					}
-					nuovoContenitore[i] = contenitoreTemp / k;
-					contenitoreTemp = 0;
-				}
-			}
-			return nuovoContenitore;
-		}
-
-		var pingMin = function (contenitore) {
-			var minMeasure = contenitore[0];
-			for (var i = 1; i < contenitore.length; i++) {
-				var measure = contenitore[i];
-				if (measure < minMeasure) minMeasure = measure;
-			}
-			return minMeasure.toFixed(2);
-		}
-
-		var pingMax = function (contenitore) {
-			var maxMeasure = contenitore[0];
-			for (var i = 1; i < contenitore.length; i++) {
-				var measure = contenitore[i];
-				if (measure > maxMeasure) maxMeasure = measure;
-			}
-			return maxMeasure.toFixed(2);
-		}
-
-		var pingJit = function (contenitore) {
-			var prevLatency = 0;
-			var latency = 0.0;
-			var jitter = 0.0;
-			var total = 0;
-			var contenitoreJit = 0;
-			for (var i = 1; i < contenitore.length; i++) {
-				prevLatency = contenitore[i - 1]
-				latency = contenitore[i];
-				var instjitter = Math.abs(latency - prevLatency)
-				contenitoreJit += instjitter;
-				total++;
-				jitter = instjitter > jitter ? (jitter * 0.2 + instjitter * 0.8) : (jitter * 0.9 + instjitter * 0.1) // update jitter, weighted average. spikes in ping values are given more weight.
-			}
-			console.log("jitMedia: " + (contenitoreJit / total).toFixed(2));
-			return jitter.toFixed(2);
-		}
-		/* End Petrucci Functions */
 
 
 		ws.onopen = function () {
+			begin = performance.now()
+			console.log("INIZIO TEST: "+ begin.toFixed(2) + " ms")
 			clearTimeout(websocketConnectionFailedTimeout);
 			sendPingMessage();
 		}
 
-		ws.onclose = function (event) {
+		ws.onclose = function (event) {			
 			if (event.code != 1000) {	// unexpected closing of the websocket connection
 				handleErrorsOrTimeoutsOrTestFinished();
 			}
@@ -200,20 +212,37 @@ function pingCodeWrapper(host, times, maxTimeout, nextFunction) {
 		ws.onmessage = function () {
 			if (timeoutEventFired) return;
 			var tf = Date.now();
+			var tff = performance.now();
 			clearTimeout(timeout);	// remove the timeout set when the message is sent in websocket since the reply message was received before the timeout was triggered
 			if (!firstPingDone) {	// exclude the first ping
+				var milli = tf - t0;
+				var micro = tff-t00
+				console.log("milli: " + milli);
+				console.log("micro: " + micro);
+				console.log("date.now: " + tf + " performance.now: " + tff);
 				firstPingDone = true;
 				sendPingMessage();
 			} else {
 				var latency = tf - t0;
-				if (count == 0) pingNuovaProva = latency;
-				pingNuovaProva = pingNuovaProva * 0.9 + latency * 0.1;
+				var latencyPerf = tff - t00;
+				var nuovaInstJitter = Math.abs(latency - prevLatency);
+				if (count == 0) {pingNuovaProva = latency; pingNuovaProva2 = latency; pingPerf = latencyPerf; }
+				else {
+					pingNuovaProva = latency < pingNuovaProva ? latency : pingNuovaProva * 0.8 + latency * 0.2;
+					pingNuovaProva2 = latency < pingNuovaProva2 ? latency * 0.8 + pingNuovaProva2 * 0.2 : pingNuovaProva2 * 0.8 + latency * 0.2;
+					pingPerf = latencyPerf < pingPerf ? latencyPerf : pingPerf * 0.8 + latencyPerf * 0.2;
+					if (count == 1) jitNuovaProva = nuovaInstJitter;
+					else jitNuovaProva = nuovaInstJitter > jitNuovaProva ? (jitNuovaProva * 0.3 + nuovaInstJitter * 0.7) : (jitNuovaProva * 0.8 + nuovaInstJitter * 0.2);
+				}
+				prevLatency = latency;
 				currentMeasureResult[count].start = (new Date(t0)).toISOString();
 				currentMeasureResult[count].value = latency;
 				count++;
 				totalTime += latency;
 
-				if (count === times) {
+				if (count == times) {
+					var end = performance.now();
+					var tempoTotale = end - begin;
 					var pingAvgValue = totalTime / count;
 					// Petrucci contents
 					var container, newContainer;
@@ -225,6 +254,11 @@ function pingCodeWrapper(host, times, maxTimeout, nextFunction) {
 					console.log("max: " + pingMax(newContainer));
 					console.log("jit: " + pingJit(newContainer));
 					console.log("pingNuovaProva: " + pingNuovaProva.toFixed(2));
+					console.log("pingNuovaProva2: " + pingNuovaProva2.toFixed(2));
+					console.log("pingPerf: " + pingPerf.toFixed(2));
+					console.log("jitNuovaProva: " + jitNuovaProva.toFixed(2));
+					console.log("FINE TEST: "+ end.toFixed(2) + " ms");
+					console.log("TEMPO TEST: "+ tempoTotale.toFixed(2) + " ms");
 					// End Petrucci contents
 					measureResultsContainer.server = host;
 					latencyAvgValue = pingAvgValue;
@@ -244,13 +278,13 @@ function pingCodeWrapper(host, times, maxTimeout, nextFunction) {
 		}
 	));
 
-	pingTest(host, times, maxTimeout, nextFunction);
+	pingTest(host, times, maxTimeout, nextFunction); //start first ping
 }
 
 /** Speedtest */
 function startSpeedtest(server) {
 	measureResultsContainer.start = (new Date()).toISOString();
-	var timesToPing = 50;
+	var timesToPing = 100;
 	var pingMaxTimeout = 1000000; //ms
 	pingCodeWrapper(server, timesToPing, pingMaxTimeout, terminateWorker);
 }
