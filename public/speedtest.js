@@ -128,9 +128,9 @@ function pingCodeWrapper(host, times, maxTimeout, nextFunction) {
 		}, 2000);
 
 		ws.onopen = function () {
-			begin = performance.now()
-			console.log("INIZIO TEST: "+ begin.toFixed(2) + " ms")
+			console.log("INIZIO TEST");
 			clearTimeout(websocketConnectionFailedTimeout);
+			begin = performance.now()
 			sendPingMessage();
 		}
 
@@ -154,7 +154,7 @@ function pingCodeWrapper(host, times, maxTimeout, nextFunction) {
 				var instJitter = Math.abs(latencyPerf - prevLatency);
 				if (count == 0) pingPerf = latencyPerf;
 				else {
-					pingPerf = latencyPerf < pingPerf ? pingPerf * 0.2 + latencyPerf * 0.8 : pingPerf * 0.8 + latencyPerf * 0.2;
+					pingPerf = latencyPerf < pingPerf ? pingPerf * 0.3 + latencyPerf * 0.7 : pingPerf * 0.8 + latencyPerf * 0.2;
 					if (count == 1) jitter = instJitter;
 					else jitter = instJitter > jitter ? jitter * 0.3 + instJitter * 0.7 : jitter * 0.8 + instJitter * 0.2;
 				}
@@ -168,11 +168,9 @@ function pingCodeWrapper(host, times, maxTimeout, nextFunction) {
 					var end = performance.now();
 					var tempoTotale = end - begin;
 					var pingAvgValue = sumTime / count;
-					console.log("Latenza media: " + pingAvgValue.toFixed(2));
-					console.log("Latenza media Perf: " + pingPerf.toFixed(2));
+					console.log("Latenza media: " + pingPerf.toFixed(2));
 					console.log("jitter: " + jitter.toFixed(2));
-					console.log("FINE TEST: "+ end.toFixed(2) + " ms");
-					console.log("TEMPO TEST: "+ tempoTotale.toFixed(2) + " ms");
+					console.log("Tempo test: "+ tempoTotale.toFixed(2) + " ms");
 					console.log('');
 					measureResultsContainer.server = host;
 					latencyAvgValue = pingAvgValue;
