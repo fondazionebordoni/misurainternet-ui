@@ -12,6 +12,8 @@ var res = [];
 var listelements = [];
 var client_id = null;
 
+const ENABLE_SPEEDTEST = false;
+
 class App extends Component {
   constructor(props) {
     super(props);
@@ -115,50 +117,55 @@ class App extends Component {
 
   handleWebSocketErrors() {
     this.setState({ isNeMeSysRunning: false });
-    this.displayError(1234);
+    if (!ENABLE_SPEEDTEST) {
+      this.displayError(1006);
+    } else {
+      this.displayError(1234);
+    }
     this.resetMeasureResults();
 
-    var ajax_getMISTSerial_settings = {
-      async: true,
-      crossDomain: true,
-      url: "https://www.misurainternet.it/get_serial/?type=speedtest",
-      method: "GET",
-      headers: {
-        "cache-control": "no-cache"
-      }
-    };
-    $.ajax(ajax_getMISTSerial_settings).done(
-      function(response) {
-        this.mistClientId = response.serial;
-        this.displayWaitView(this.mistClientId);
-      }.bind(this)
-    );
-
-    var ajax_getMISTServers_settings = {
-      async: true,
-      url: "https://www.misurainternet.it/get_servers/?type=speedtest",
-      method: "GET",
-      headers: {
-        "cache-control": "no-cache"
-      }
-    };
-    $.ajax(ajax_getMISTServers_settings).done(
-      function(response) {
-        var arrayOfServers = [];
-        for (var i = 0; i < response.servers.length; i++) {
-          arrayOfServers.push(
-            response.servers[i].ip + ":" + response.servers[i].port
-          );
+    if (ENABLE_SPEEDTEST) {
+      var ajax_getMISTSerial_settings = {
+        async: true,
+        crossDomain: true,
+        url: "https://www.misurainternet.it/get_serial/?type=speedtest",
+        method: "GET",
+        headers: {
+          "cache-control": "no-cache"
         }
-        this.setState({
-          mistTestServers: arrayOfServers
-        });
-      }.bind(this)
-    );
+      };
+      $.ajax(ajax_getMISTSerial_settings).done(
+        function(response) {
+          this.mistClientId = response.serial;
+          this.displayWaitView(this.mistClientId);
+        }.bind(this)
+      );
+
+      var ajax_getMISTServers_settings = {
+        async: true,
+        url: "https://www.misurainternet.it/get_servers/?type=speedtest",
+        method: "GET",
+        headers: {
+          "cache-control": "no-cache"
+        }
+      };
+      $.ajax(ajax_getMISTServers_settings).done(
+        function(response) {
+          var arrayOfServers = [];
+          for (var i = 0; i < response.servers.length; i++) {
+            arrayOfServers.push(
+              response.servers[i].ip + ":" + response.servers[i].port
+            );
+          }
+          this.setState({
+            mistTestServers: arrayOfServers
+          });
+        }.bind(this)
+      );
+    }
   }
 
   componentDidMount() {
-    //var ws = new WebSocket('ws://localhost:8080'); // -> SERVER DI TEST
     var ws = new WebSocket("ws://localhost:54201/ws");
 
     ws.onopen = function() {
@@ -229,7 +236,7 @@ class App extends Component {
           msg.content.retry
         );
         break;
-      case "speedtest": //MIST ha terminato di effettuare le misure
+      case "speedtest": // MIST ha terminato di effettuare le misure
         this.handleMISTResults(msg);
         break;
       default:
@@ -570,19 +577,17 @@ class App extends Component {
               <p>
                 <b>
                   Assicurati di aver scaricato ed installato Nemesys: una volta
-                  completata l&#039; installazione, potrai vedere l&#039;
-                  avanzamento delle tue misure su questa pagina.
+                  completata l&#039;installazione, potrai vedere
+                  l&#039;avanzamento delle tue misure su questa pagina.
                 </b>
-                <br />
                 <br />
                 Se hai già installato Nemesys e visualizzi questa schermata,
                 prova a riavviare il computer.
                 <br />
-                <br />
-                Qualora continuassi a visualizzare questo messaggio, l&#039;
-                installazione o l&#039; avvio di Nemesys potrebbero non essere
-                andati a buon fine:
-                <a href="/supporto/">contatta il nostro helpdesk.</a>
+                Qualora continuassi a visualizzare questo messaggio,
+                l&#039;installazione o l&#039;avvio di Nemesys potrebbero non
+                essere andati a buon fine,{" "}
+                <a href="/supporto/">consulta le nostre pagine di supporto</a>.
               </p>
             )
           });
@@ -613,10 +618,10 @@ class App extends Component {
           hdr: "MisuraInternet Speedtest - Errore",
           par: (
             <p>
-              <b>Errore nel test di ping. </b>
-              Puoi effettuare nuovamente la misurazione con MisuraInternet
-              Speedtest cliccando sul tasto START. Qualora volessi riprendere ad
-              effettuare le misurazioni con Nemesys, <a href="/">clicca qui</a>
+              <b>Errore nel test di ping</b>. Puoi effettuare nuovamente la
+              misurazione con MisuraInternet Speedtest cliccando sul tasto
+              START. Qualora volessi riprendere ad effettuare le misurazioni con
+              Nemesys, <a href="/">clicca qui</a>
             </p>
           )
         });
@@ -628,10 +633,10 @@ class App extends Component {
           hdr: "MisuraInternet Speedtest - Errore",
           par: (
             <p>
-              <b>Errore nel test di download. </b>
-              Puoi effettuare nuovamente la misurazione con MisuraInternet
-              Speedtest cliccando sul tasto START. Qualora volessi riprendere ad
-              effettuare le misurazioni con Nemesys, <a href="/">clicca qui</a>
+              <b>Errore nel test di download</b>. Puoi effettuare nuovamente la
+              misurazione con MisuraInternet Speedtest cliccando sul tasto
+              START. Qualora volessi riprendere ad effettuare le misurazioni con
+              Nemesys, <a href="/">clicca qui</a>
             </p>
           )
         });
@@ -643,10 +648,10 @@ class App extends Component {
           hdr: "MisuraInternet Speedtest - Errore",
           par: (
             <p>
-              <b>Errore nel test di upload. </b>
-              Puoi effettuare nuovamente la misurazione con MisuraInternet
-              Speedtest cliccando sul tasto START. Qualora volessi riprendere ad
-              effettuare le misurazioni con Nemesys, <a href="/">clicca qui</a>
+              <b>Errore nel test di upload</b>. Puoi effettuare nuovamente la
+              misurazione con MisuraInternet Speedtest cliccando sul tasto
+              START. Qualora volessi riprendere ad effettuare le misurazioni con
+              Nemesys, <a href="/">clicca qui</a>
             </p>
           )
         });
