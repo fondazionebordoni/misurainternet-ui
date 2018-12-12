@@ -6,13 +6,13 @@ import Notifica from "./Notifica";
 import ContenitoreIconeDiStato from "./ContenitoreIconeDiStato";
 import $ from "jquery";
 
-//se non si collega a nemesis all'avvio faccio partire mist.
-
 var res = [];
 var listelements = [];
 var client_id = null;
 
 const ENABLE_SPEEDTEST = false;
+
+// TODO: Do not update graph if serial or measures' number haven't changed
 
 class App extends Component {
   constructor(props) {
