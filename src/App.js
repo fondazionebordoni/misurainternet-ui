@@ -564,7 +564,6 @@ class App extends Component {
     switch (errorMsg) {
       case 1006:
         {
-          document.getElementById("titolo").innerHTML = "Nemesys - Errore";
           this.setState({ hdr: "Impossibile connettersi a Nemesys" });
           this.setState({
             par: (
@@ -590,8 +589,6 @@ class App extends Component {
         }
         break;
       case 1234: //Errore connessione websocket
-        document.getElementById("titolo").innerHTML =
-          "MisuraInternet Speedtest";
         this.setState({
           hdr: "MisuraInternet Speedtest",
           par: (
