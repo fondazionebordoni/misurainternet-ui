@@ -12,8 +12,6 @@ var client_id = null;
 
 const ENABLE_SPEEDTEST = false;
 
-// TODO: Do not update graph if serial or measures' number haven't changed
-
 class App extends Component {
   constructor(props) {
     super(props);
@@ -489,7 +487,7 @@ class App extends Component {
           async: true,
           crossDomain: true,
           url:
-            "https://www.misurainternet.it//get_client_detail/?serial=" +
+            "https://www.misurainternet.it/get_client_detail/?serial=" +
             serial +
             "&type=licenseInfo",
           method: "GET",
