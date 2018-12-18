@@ -6,10 +6,7 @@ import Notifica from "./Notifica";
 import ContenitoreIconeDiStato from "./ContenitoreIconeDiStato";
 import $ from "jquery";
 
-var res = [];
-var listelements = [];
-var client_id = null;
-
+const listelements = [];
 const ENABLE_SPEEDTEST = false;
 
 class App extends Component {
