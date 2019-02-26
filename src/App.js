@@ -321,7 +321,7 @@ class App extends React.Component {
 					pingValue: result.ping.toFixed(2),
 					jitterValue: result.jitter.toFixed(2)
 				});
-				stringResult = stringResult.concat('avg: ' + result.ping.toFixed(2) + '\tstdev: ' + result.jitter.toFixed(2) + '\t');
+				stringResult = stringResult.concat('avg: ' + result.ping.toFixed(2) + '\tmdev: ' + result.jitter.toFixed(2) + '\t');
 				console.log('ping: ' + result.ping.toFixed(2) + ' jitter: ' + result.jitter.toFixed(2));
 				break;
 

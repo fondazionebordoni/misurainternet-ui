@@ -14,6 +14,7 @@ class PortScan extends React.Component {
 		};
 		this.handleInputChange = this.handleInputChange.bind(this);
 		this.handleSubmit = this.handleSubmit.bind(this);
+		this.resetMeasureResults = this.resetMeasureResults.bind(this);
 		//console.log(this.state);
 	}
 
@@ -23,14 +24,18 @@ class PortScan extends React.Component {
 		});
 	}
 
+	resetMeasureResults() {
+		this.setState({
+			result: ''
+		});
+	}
+
 	handleSubmit(event) {
 		$('#mistButton').attr('disabled', 'disabled');
 		$('#portScanButton').attr('disabled', 'disabled');
 		$('#hostScanButton').attr('disabled', 'disabled');
 
-		this.setState({
-			result: ''
-		});
+		this.resetMeasureResults();
 
 		//console.log(this.state);
 		//Previene il comportamento di default del riaggiornamento della pagina
@@ -41,10 +46,10 @@ class PortScan extends React.Component {
 		//let worker = new Worker(process.env.PUBLIC_URL + '/js/portScanBundle.js');
 
 		//npm ha un package react-websocket che permette di usare un component <WebSocket> e mount/unmount per connettersi
-		var ws = new WebSocket('ws://localhost:60200');
+		let ws = new WebSocket('ws://localhost:60200');
 
 		ws.onopen = function() {
-			var scanRequest = {
+			let scanRequest = {
 				testType: 'portScan',
 				target: this.state.hostAddress,
 				startPort: this.state.startPort,
@@ -52,11 +57,11 @@ class PortScan extends React.Component {
 				timeout: this.state.timeout
 			};
 			ws.send(JSON.stringify(scanRequest));
-			//ws.send(this.state.hostAddress);
 		}.bind(this);
 
 		ws.onmessage = function(message) {
-			var msg = JSON.parse(message.data);
+			//TODO inviare i risultati della scansione in tempo reale, ed un messaggio di terminazione del test
+			let msg = JSON.parse(message.data);
 			this.setState({
 				result: msg
 			});
@@ -65,7 +70,9 @@ class PortScan extends React.Component {
 		}.bind(this);
 
 		ws.onclose = function(event) {
+			//TODO distinguere se la chiusura è avvenuta lato client o per via di un errore lato server
 			console.log('Chiusa connessione websocket al server python');
+			//Eventuale error handling per chiusura inaspettata della connessione WebSocket
 			/*if (event.code !== 1000) {
 				console.log(event);
 				//this.handleWebSocketErrors();
@@ -84,7 +91,7 @@ class PortScan extends React.Component {
 				<form className = 'form-inline' onSubmit = {this.handleSubmit}>
 					<div className = 'col-md-10'>
 						<div className = 'form-group'>
-							<label className = 'horizontal-spacing'>From port: </label>
+							<label className = 'horizontal-spacing'>From port </label>
 							<input 
 								name = 'startPort'
 								className = 'form-control' 
@@ -95,7 +102,7 @@ class PortScan extends React.Component {
 							/>
 						</div>
 						<div className = 'form-group'>
-							<label className = 'horizontal-spacing'>To port: </label>
+							<label className = 'horizontal-spacing'>To port </label>
 							<input 
 								name = 'endPort'
 								className = 'form-control' 
@@ -106,7 +113,7 @@ class PortScan extends React.Component {
 							/>
 						</div>
 						<div className = 'form-group'>
-							<label className = 'horizontal-spacing'>Host IP: </label>
+							<label className = 'horizontal-spacing'>Host IP </label>
 							<input 
 								name = 'hostAddress'
 								className = 'form-control' 
@@ -117,7 +124,7 @@ class PortScan extends React.Component {
 							/>
 						</div>
 						<div className = 'form-group'>	
-							<label className = 'horizontal-spacing'>Timeout: </label>
+							<label className = 'horizontal-spacing'>Timeout </label>
 							<input 
 								name = 'timeout'
 								className = 'form-control' 
@@ -144,7 +151,11 @@ class PortScan extends React.Component {
 					</div>
 				</form>
 				<div className = 'col-md-12' >
-					Porte aperte: {this.state.result}
+					<h2 style={{fontWeight: "lighter"}}>
+						<small className="text-muted" >
+							Porte aperte: {this.state.result}
+						</small>
+					</h2>
 				</div>
 			</div>
 		);

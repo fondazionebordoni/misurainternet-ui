@@ -1,5 +1,5 @@
 module.exports = {
-	entry: __dirname + '/public/speedtest.js',
+	entry: __dirname + '/public/js/speedtest.js',
 	module: {
 		rules: [ 
 			{

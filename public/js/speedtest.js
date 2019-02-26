@@ -5,11 +5,11 @@
 		-> https://github.com/adolfintel/speedtest/blob/master/speedtest_worker.js
 */
 
-import {pingCodeWrapper} from './js/pingCodeWrapper';
+import {pingCodeWrapper} from './pingCodeWrapper';
 //Il test di packet loss con websocket usa TCP, non rilevando pacchetti persi (vengono ritrasmessi)
-//import {packetLossTest} from './js/packetLossTest';
-import {downloadTest} from './js/downloadTest'; 
-import {uploadTest} from './js/uploadTest';
+//import {packetLossTest} from './packetLossTest';
+import {downloadTest} from './downloadTest'; 
+import {uploadTest} from './uploadTest';
 
 /*************Global variables****************/
 let measureResultsContainer = {
@@ -24,8 +24,8 @@ let measureResultsContainer = {
 const serverPorts = ['60100', '60101', '60102', '60103', '60104', '60105', '60106', '60107', '60108', '60109'];
 
 const useCustomTestServer = true;
-const customTestServerIP = ['18.220.180.11'];
-//const customTestServerIP = ['localhost']; //Put here your custom IP
+//const customTestServerIP = ['18.222.201.233'];
+const customTestServerIP = ['localhost']; //Put here your custom IP
 
 workerListener();
 

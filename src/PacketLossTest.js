@@ -6,15 +6,16 @@ class PacketLossTest extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			servers: {
-				"iceServers": [
+			config: {
+				'iceServers': [
 				{
-					"urls":"turn:192.168.1.100:3478", 
-					"username": "user",
-					"credential":"pwpwpw"
+					'urls':'turn:127.0.0.1:3478', 
+					'username': 'utente',
+					'credential':'password'
 				}	    
 				]
 			},
+			packetsToSend: 30,
 			result: 0
 		};
 
@@ -23,16 +24,30 @@ class PacketLossTest extends React.Component {
 	}
 
 	handleInputChange(event) {
-		this.setState({
-			[event.target.name]: event.target.value
-		});
-		console.log(this.state);
+		//console.log(event.target);
+		switch(event.target.name) {
+			case 'urls':
+			case 'username':
+			case 'credential':
+				let configCopy = JSON.parse(JSON.stringify(this.state.config));
+				configCopy.iceServers[0][event.target.name] = event.target.value;
+				this.setState({
+				      'config': configCopy 
+				}); 
+				break;
+			default:
+				this.setState({
+					[event.target.name]: event.target.value
+				});
+		}
+		//console.log(this.state);
 	}
 
 	handleSubmit(event) {
 		//Posso usare queste variabili per mandare N pacchetti
-		let packetsReturned = 0;
-		let packetsToSend = 30;
+		let packetsReceived = 0;
+		let packetsToSend = this.state.packetsToSend;	//Utilizzare 30 come valore per il test
+		//let packetsInterval = 500; //Manda un pacchetto ogni 500ms tramite setInterval()
 		let testDone = false;
 		let result = 0;
 
@@ -44,13 +59,13 @@ class PacketLossTest extends React.Component {
 
 		event.preventDefault();
 
-		var pc1 = new RTCPeerConnection(this.state.servers);
-		var pc2 = new RTCPeerConnection(this.state.servers);
+		var pc1 = new RTCPeerConnection(this.state.config);
+		var pc2 = new RTCPeerConnection(this.state.config);
 
 		pc1.onicecandidate = function(event) {
 			if(event.candidate) {
 				var candidate = event.candidate;
-		  	    if(candidate.candidate.indexOf("relay")<0) //Obbliga ad accettare solo candidati di tipo relay (TURN), vedere TrickleICE
+		  	    if(candidate.candidate.indexOf('relay')<0) //Obbliga ad accettare solo candidati di tipo relay (TURN), vedere TrickleICE
 		  	    	return;
 		  	    pc2.addIceCandidate(candidate);
 		  	}
@@ -59,7 +74,7 @@ class PacketLossTest extends React.Component {
 		pc2.onicecandidate = function(event) {
 		  	if(event.candidate) {
 		  		var candidate = event.candidate;
-		  	    if(candidate.candidate.indexOf("relay")<0) //Obbliga ad accettare solo candidati di tipo relay (TURN), vedere TrickleICE
+		  	    if(candidate.candidate.indexOf('relay')<0) //Obbliga ad accettare solo candidati di tipo relay (TURN), vedere TrickleICE
 		  	    	return;
 		  	    pc1.addIceCandidate(candidate);
 		  	}
@@ -72,15 +87,23 @@ class PacketLossTest extends React.Component {
 		}
 
 		function createDataChannels() {
+			//Il peer 2 invia i pacchetti al peer 1 mediante il server di relay, simulando un ping
 		    //Creare il data channel in modalità unreliable e unordered
-		    var dc1 = pc1.createDataChannel('packetLossTest', {maxRetransmits: 0, ordered: true});
+		    var dc1 = pc1.createDataChannel('packetLossTest', {
+				//Per mandare pacchetti UDP (con la stessa semantica) serve specificare maxRetransmits a 0 e ordered false
+		    	maxRetransmits: 0, 
+		    	ordered: false
+		    	//maxPacketLifeTime: 2000	//TODO Testare se e come si può impostare il timeout dei pacchetti e che effetto ha sul risultato
+		    });	
 
 		    dc1.onopen = function() {
 		    	console.log('pc1: data channel open');
 
 		    	dc1.onmessage = function(event) {
-		    		console.log('pc1: received pong');
-		    		dc1.send('ping');
+		    		//Il peer 1 è il downlink, e conta i pacchetti ricevuti
+		    		console.log('pc1: received ping');
+		    		//dc1.send('pong');	//Non serve mandare di nuovo pacchetti indietro, si avrebbero duplicati
+					packetsReceived++;
 		    	}
 		    };
 
@@ -91,12 +114,13 @@ class PacketLossTest extends React.Component {
 		    		console.log('pc2: data channel open');
 
 		    		if(!testDone) {
-		    			let sent = 1;
+		    			let packetsSent = 1;
+		    			//Invio di n messaggi con intervallo prestabilito
 		    			let ping = setInterval(function() {
-		    				if(sent !== packetsToSend) {
-		    					console.log('pc2: send #'+sent);
-		    					sent++;
-		    					dc2.send('pong');
+		    				if(packetsSent <= packetsToSend) {
+		    					console.log('pc2: send #'+packetsSent);
+		    					packetsSent++;
+		    					dc2.send('ping');
 		    				} else {
 		    					clearInterval(ping);     
 		    					testDone = true;
@@ -109,14 +133,16 @@ class PacketLossTest extends React.Component {
 		    		}
 
 		    		dc2.onmessage = function(event) {
-		          	//var data = event.data;
-		          	packetsReturned++;
-		          	console.log('pc2: ACK Packets = '+packetsReturned);
-		      	}
-		  	}
-		};
+		    			//Il peer 2 manda solamente pacchetti in uplink, non riceverà niente
+			          	//var data = event.data;
+			          	//packetsReceived++;
+			          	//console.log('pc2: ACK Packets = '+packetsReceived);
+			          	console.log('dc2 msg received');
+		      		}
+		  		}
+			};
 
-		createOffer();
+			createOffer();
 		}
 
 		function createOffer() {
@@ -184,7 +210,7 @@ class PacketLossTest extends React.Component {
 			pc1.close();
 			pc2.close();
 
-		    let packetsLost = packetsToSend - packetsReturned;
+		    let packetsLost = packetsToSend - packetsReceived;
 		    result = packetsLost / packetsToSend * 100;
 
 			this.setState({
@@ -200,17 +226,17 @@ class PacketLossTest extends React.Component {
 	render() {
 		return (
 			<div>
-				<br/><div className="container">
+				<br/><div className='container'>
 					<h3>Test di Packet Loss</h3><br/>
 					<form className = 'form-inline'>
-						<div className="col-sm-8">
+						<div className='col-sm-10'>
 							<div className = 'form-group'>
-								<label className = 'horizontal-spacing'>TURN Server:</label>
+								<label className = 'horizontal-spacing'>TURN Server</label>
 								<input 
-									name = 'timeout'
+									name = 'urls'
 									className = 'form-control' 
 									type = 'text' 
-									defaultValue = {this.state.servers.iceServers[0].urls} 
+									defaultValue = {this.state.config.iceServers[0].urls} 
 									onChange = {this.handleInputChange}
 									size = '18'
 								/>
@@ -218,35 +244,36 @@ class PacketLossTest extends React.Component {
 							<div className = 'form-group'>
 								<label className = 'horizontal-spacing'>Username</label>
 								<input 
-									name = 'timeout'
+									name = 'username'
 									className = 'form-control' 
 									type = 'text' 
-									defaultValue = {this.state.servers.iceServers[0].username} 
+									defaultValue = {this.state.config.iceServers[0].username} 
 									onChange = {this.handleInputChange}
 									size = '4'
 								/>
 							</div>
 							<div className = 'form-group'>
-								<label className = 'horizontal-spacing'>Password:</label>
+								<label className = 'horizontal-spacing'>Password</label>
 								<input 
-									name = 'timeout'
+									name = 'credential'
 									className = 'form-control' 
 									type = 'password' 
-									defaultValue = {this.state.servers.iceServers[0].credential} 
+									defaultValue = {this.state.config.iceServers[0].credential} 
 									onChange = {this.handleInputChange}
 									size = '4'
 								/>
 							</div>
-						</div>
-						<div className="col-sm-2">
 							<div className = 'form-group'>
-						        <h1 style={{fontWeight: "lighter"}}>
-						          {this.state.result.toFixed(2)}
-						          <small className="text-muted" style={{fontWeight: "lighter"}}>
-						             %
-						          </small>
-						        </h1>
-					        </div>
+								<label className = 'horizontal-spacing'>Nr. of packets</label>
+								<input 
+									name = 'packetsToSend'
+									className = 'form-control' 
+									type = 'text' 
+									defaultValue = {this.state.packetsToSend} 
+									onChange = {this.handleInputChange}
+									size = '1'
+								/>
+							</div>
 						</div>
 						<div className = 'col-sm-2'>
 							<div className = 'form-group'>
@@ -258,6 +285,15 @@ class PacketLossTest extends React.Component {
 									onClick = {this.handleSubmit}
 								/>
 							</div>
+						</div>
+						<div className='col-sm-12'>
+							<div className = 'form-group'>
+						        <h2 style={{fontWeight: 'lighter'}}>
+								  <small className="text-muted" >
+								    Packet Loss: {this.state.result.toFixed(2)}%
+								  </small>
+						        </h2>
+					        </div>
 						</div>
 					</form>	
 				</div><hr/>
