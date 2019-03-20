@@ -15,7 +15,7 @@ class PacketLossTest extends React.Component {
 				}	    
 				]
 			},
-			packetsToSend: 30,
+			packetsToSend: 1000,
 			result: 0
 		};
 
@@ -129,7 +129,7 @@ class PacketLossTest extends React.Component {
 					            //FIXME I due data channel vengono riaperti prima della chiusura col timeout, e dopo la chiusura chiamando done()
 					            //FIXME Tuttavia ciò non rappresenta un problema verificando se il test è stato completato
 		        			}
-		      			},500);
+		      			},50);	//TODO Impostare variabile, possibilmente nel form
 		    		}
 
 		    		dc2.onmessage = function(event) {

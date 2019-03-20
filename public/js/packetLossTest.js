@@ -47,7 +47,7 @@ export function packetLossTest(arrayOfHostNamesAndPorts, packetsToSend, packetFr
 					testFinished = true;
 					clearInterval(interval);
 				}
-			}, 5 /*TODO packetFrequency */);
+			}, 50 /*TODO packetFrequency */);
 			let closeDelay = setTimeout(function() {
 				handleErrorsOrTimeoutsOrTestFinished();
 			}, 4000 /*TODO maxTimeout */);
